@@ -1,0 +1,2786 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spec Navigator</title>
+  <style>
+    :root {
+      --ink: #172123;
+      --muted: #647173;
+      --paper: #f6f4ee;
+      --card: #fffefb;
+      --line: #d9ded9;
+      --accent: #0c6b5d;
+      --accent-dark: #074b42;
+      --accent-soft: #dceee8;
+      --navy: #17324d;
+      --amber: #b76821;
+      --amber-soft: #fff0dd;
+      --red: #a23c36;
+      --red-soft: #fbe8e5;
+      --shadow: 0 18px 60px rgba(28, 49, 47, .10);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% -10%, rgba(12,107,93,.13), transparent 31rem),
+        radial-gradient(circle at 97% 8%, rgba(23,50,77,.10), transparent 30rem),
+        var(--paper);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1180px, calc(100% - 36px)); margin: 0 auto; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 26px 0 14px;
+    }
+    .brand { display: flex; gap: 13px; align-items: center; }
+    .mark {
+      width: 43px; height: 43px; border-radius: 13px;
+      display: grid; place-items: center;
+      background: var(--ink); color: white; box-shadow: 0 8px 24px rgba(23,33,35,.18);
+    }
+    .mark svg { width: 24px; height: 24px; }
+    .brand-name { font-size: 18px; font-weight: 780; letter-spacing: -.02em; }
+    .brand-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .header-actions { display:flex; align-items:center; gap:12px; }
+    .version-button { position:relative; min-height:34px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,254,251,.78); color:var(--accent-dark); font-size:11px; font-weight:780; transition:.16s ease; }
+    .version-button:hover { transform:translateY(-1px); border-color:#9db0aa; background:#fff; }
+    .version-dot { position:absolute; top:-3px; right:-2px; width:9px; height:9px; border-radius:50%; background:#e57627; border:2px solid var(--paper); box-shadow:0 0 0 3px rgba(229,118,39,.15); }
+    .version-dot[hidden] { display:none; }
+    .privacy { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+    .privacy::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #38a67f; box-shadow: 0 0 0 4px rgba(56,166,127,.13); }
+
+    main { padding: 42px 0 80px; }
+    .hero { text-align: center; margin: 12px auto 34px; max-width: 780px; }
+    .eyebrow { color: var(--accent); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .13em; }
+    h1 { margin: 12px 0 12px; font-size: clamp(38px, 6vw, 66px); line-height: .98; letter-spacing: -.058em; font-weight: 820; }
+    .hero p { margin: 0 auto; max-width: 680px; color: var(--muted); font-size: 17px; line-height: 1.65; }
+
+    .drop-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 270px;
+      border: 1.5px dashed #98aaa5;
+      border-radius: 24px;
+      background: rgba(255,254,251,.78);
+      box-shadow: var(--shadow);
+      display: grid;
+      place-items: center;
+      padding: 38px;
+      transition: .2s ease;
+    }
+    .drop-card::after {
+      content: ""; position: absolute; inset: auto -70px -110px auto;
+      width: 260px; height: 260px; border-radius: 50%;
+      background: rgba(12,107,93,.06); pointer-events: none;
+    }
+    .drop-card.dragover { border-color: var(--accent); background: #f2fbf7; transform: translateY(-2px); box-shadow: 0 24px 70px rgba(12,107,93,.16); }
+    .drop-inner { text-align: center; position: relative; z-index: 1; }
+    .drop-icon { width: 62px; height: 62px; margin: 0 auto 18px; border-radius: 20px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-dark); }
+    .drop-icon svg { width: 30px; height: 30px; }
+    .drop-title { font-size: 21px; font-weight: 760; letter-spacing: -.025em; }
+    .drop-copy { margin: 8px 0 20px; color: var(--muted); font-size: 14px; }
+    .button-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid var(--line); border-radius: 11px; padding: 11px 16px;
+      background: var(--card); color: var(--ink); font-weight: 720;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      transition: .16s ease; min-height: 42px;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: #abb8b4; }
+    .btn.primary { color: white; border-color: var(--accent); background: var(--accent); box-shadow: 0 8px 24px rgba(12,107,93,.18); }
+    .btn.primary:hover { background: var(--accent-dark); }
+    .btn.dark { color: white; border-color: var(--navy); background: var(--navy); }
+    .btn.ghost { background: transparent; }
+    .btn:disabled { cursor: not-allowed; opacity: .5; transform: none; }
+    .hidden-input { display: none; }
+
+    .requirements { margin: 15px 0 0; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .chip { padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.65); color: var(--muted); font-size: 12px; }
+
+    #workspace { display: none; margin-top: 28px; }
+    #workspace.visible { display: block; }
+    .summary-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 0 0 18px; }
+    .stat { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: 0 6px 24px rgba(28,49,47,.055); }
+    .stat-label { color: var(--muted); font-size: 12px; font-weight: 680; }
+    .stat-value { margin-top: 6px; font-size: 27px; line-height: 1; letter-spacing: -.04em; font-weight: 820; }
+    .stat-value.good { color: var(--accent); }
+    .stat-value.warn { color: var(--amber); }
+
+    .panel { border: 1px solid var(--line); background: var(--card); border-radius: 18px; box-shadow: 0 8px 30px rgba(28,49,47,.06); overflow: hidden; }
+    .panel + .panel { margin-top: 16px; }
+    .panel-head { padding: 18px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .panel-title { font-size: 16px; font-weight: 780; letter-spacing: -.02em; }
+    .panel-sub { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .toolbar { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+    .search { min-width: 250px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #fbfcf9; color: var(--ink); outline: none; }
+    .search:focus, .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(12,107,93,.10); }
+
+    .package-info { padding: 16px 20px; display: grid; gap: 12px; grid-template-columns: 1.2fr 1fr; }
+    .info-box { border-radius: 13px; padding: 13px 14px; background: #f5f7f4; }
+    .info-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 750; }
+    .info-value { font-weight: 700; margin-top: 4px; word-break: break-word; }
+
+    .progress-wrap { display: none; padding: 15px 20px; border-top: 1px solid var(--line); background: #fafbf8; }
+    .progress-wrap.visible { display: block; }
+    .progress-copy { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .track { height: 8px; border-radius: 999px; overflow: hidden; background: #e5eae6; }
+    .bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), #3da988); border-radius: inherit; transition: width .16s ease; }
+
+    .division-list { padding: 8px 14px 16px; max-height: 610px; overflow: auto; }
+    details.division { border: 1px solid var(--line); border-radius: 13px; margin-top: 9px; overflow: hidden; background: #fff; }
+    details.division summary { list-style: none; padding: 13px 15px; display: flex; justify-content: space-between; gap: 15px; align-items: center; cursor: pointer; font-weight: 740; background: #fafbf8; }
+    details.division summary::-webkit-details-marker { display:none; }
+    .division-count { color: var(--muted); font-size: 12px; font-weight: 650; }
+    .spec-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .spec-table th { text-align: left; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .07em; padding: 10px 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #f7f8f5; }
+    .spec-table td { padding: 11px 12px; border-bottom: 1px solid #edf0ed; vertical-align: top; }
+    .spec-table tr:last-child td { border-bottom: 0; }
+    .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: .96em; font-weight: 690; }
+    .path { color: var(--muted); font-size: 10px; margin-top: 4px; max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .empty { padding: 50px 20px; text-align: center; color: var(--muted); }
+
+    .output-grid { padding: 18px 20px 20px; display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 11px; }
+    .field-wrap label { display:block; color:var(--muted); font-size:11px; font-weight:700; margin:0 0 6px 2px; }
+    .field { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; outline: none; background:#fbfcf9; }
+    .build-note { padding: 0 20px 18px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .viewer-launch { padding: 20px; display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center; background:linear-gradient(120deg, rgba(12,107,93,.08), rgba(23,50,77,.045)); }
+    .viewer-launch-title { font-size:20px; font-weight:810; letter-spacing:-.03em; }
+    .viewer-launch-copy { color:var(--muted); font-size:13px; line-height:1.55; margin-top:5px; max-width:760px; }
+    .viewer-proof { display:flex; gap:7px; flex-wrap:wrap; margin-top:12px; }
+    .viewer-proof span { background:rgba(255,255,255,.78); border:1px solid var(--line); border-radius:999px; padding:6px 9px; color:var(--accent-dark); font-size:10px; font-weight:750; }
+
+    dialog { width: min(980px, calc(100% - 28px)); max-height: 86vh; padding: 0; border: 0; border-radius: 20px; background: var(--card); color: var(--ink); box-shadow: 0 30px 120px rgba(14,28,27,.34); }
+    dialog::backdrop { background: rgba(20,30,30,.48); backdrop-filter: blur(4px); }
+    .dialog-head { padding: 20px 22px 14px; display: flex; justify-content: space-between; gap: 16px; align-items: start; border-bottom: 1px solid var(--line); }
+    .dialog-title { font-size: 21px; font-weight: 800; letter-spacing: -.03em; }
+    .close { width: 36px; height:36px; border-radius: 10px; border:1px solid var(--line); background:#fff; font-size:20px; }
+    .tabs { display: flex; gap: 6px; padding: 12px 22px 0; }
+    .tab { border: 0; padding: 10px 12px; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 730; }
+    .tab.active { background: var(--accent-soft); color: var(--accent-dark); }
+    .badge { display:inline-grid; place-items:center; min-width:22px; padding:2px 6px; border-radius:999px; margin-left:5px; font-size:10px; background:rgba(0,0,0,.08); }
+    .dialog-tools { padding: 12px 22px; display:flex; gap:9px; justify-content:space-between; flex-wrap:wrap; }
+    .dialog-body { padding: 0 22px 22px; max-height: 56vh; overflow: auto; }
+    .exception-row { display:grid; grid-template-columns: 140px 1fr 150px; gap:12px; align-items:start; padding:13px 4px; border-bottom:1px solid #e8ece8; font-size:12px; }
+    .reason { color: var(--red); font-weight: 680; }
+    .exception-path { color:var(--muted); word-break:break-all; }
+    .status-pill { justify-self:start; border-radius:999px; padding:4px 7px; background:var(--red-soft); color:var(--red); font-size:10px; font-weight:760; white-space:nowrap; }
+    .status-pill.matched { background:var(--accent-soft); color:var(--accent-dark); }
+    .status-pill.extra { background:var(--amber-soft); color:var(--amber); }
+    .dialog-foot { display:flex; justify-content:flex-end; padding: 13px 22px; border-top:1px solid var(--line); background:#fafbf8; }
+
+    #updateDialog { width:min(760px,calc(100% - 28px)); }
+    .update-body { padding:18px 22px 22px; max-height:60vh; overflow:auto; }
+    .update-pane[hidden] { display:none; }
+    .update-state { border:1px solid var(--line); border-radius:15px; padding:18px; background:#f8faf7; }
+    .update-state.available { border-color:#a9d3c5; background:linear-gradient(135deg,#eff9f5,#fffefb); }
+    .update-state.error { border-color:#edc7c2; background:#fff8f6; }
+    .update-kicker { color:var(--accent); font-size:10px; font-weight:820; letter-spacing:.09em; text-transform:uppercase; }
+    .update-title { margin-top:6px; font-size:20px; font-weight:820; letter-spacing:-.025em; }
+    .update-copy { margin-top:6px; color:var(--muted); font-size:12px; line-height:1.55; }
+    .update-version-row { display:flex; align-items:center; gap:9px; margin:15px 0; }
+    .update-version-pill { padding:6px 9px; border:1px solid var(--line); border-radius:999px; background:#fff; font-size:11px; font-weight:780; }
+    .update-version-pill.new { color:var(--accent-dark); border-color:#9ecbbb; background:var(--accent-soft); }
+    .update-notes { margin:13px 0 0; padding:0; list-style:none; }
+    .update-notes li { position:relative; margin-top:7px; padding-left:16px; color:#3f4f4b; font-size:12px; line-height:1.45; }
+    .update-notes li::before { content:""; position:absolute; left:2px; top:.55em; width:5px; height:5px; border-radius:50%; background:var(--accent); }
+    .update-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:17px; flex-wrap:wrap; }
+    .update-progress { margin-top:12px; color:var(--muted); font-size:11px; font-weight:680; }
+    .release-card { margin-top:10px; border:1px solid var(--line); border-radius:13px; overflow:hidden; background:#fff; }
+    .release-head { display:flex; align-items:center; gap:8px; padding:11px 13px; background:#f6f8f5; }
+    .release-version { color:var(--accent-dark); font-weight:810; }
+    .release-date { margin-left:auto; color:var(--muted); font-size:10px; }
+    .release-label { padding:3px 6px; border-radius:999px; background:var(--accent-soft); color:var(--accent-dark); font-size:9px; font-weight:790; text-transform:uppercase; letter-spacing:.05em; }
+    .release-notes { padding:10px 13px 13px; }
+    .release-notes ul { margin:0; padding-left:18px; color:#465650; font-size:12px; line-height:1.55; }
+    .update-privacy { margin-top:13px; padding:10px 12px; border:1px solid #dce5df; border-radius:10px; background:#fff; color:var(--muted); font-size:10px; line-height:1.45; }
+
+    #viewerDialog { width:100vw; max-width:none; height:100dvh; max-height:none; margin:0; border-radius:0; overflow:hidden; background:#e8ece8; }
+    #viewerDialog::backdrop { background:#172123; }
+    .viewer-app { height:100%; display:flex; flex-direction:column; min-width:0; }
+    .viewer-topbar { min-height:64px; padding:10px 14px; display:flex; align-items:center; gap:10px; background:#fffefb; border-bottom:1px solid #cfd7d1; box-shadow:0 2px 12px rgba(20,34,32,.08); z-index:4; }
+    .viewer-topbar .close { flex:0 0 auto; }
+    .viewer-identity { min-width:0; flex:1; }
+    .viewer-current-spec { font-weight:820; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .viewer-current-title { color:var(--muted); font-size:11px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .viewer-controls { display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+    .viewer-tool { min-height:36px; border:1px solid var(--line); border-radius:9px; background:#fff; color:var(--ink); padding:7px 10px; font-weight:720; }
+    .viewer-tool:hover { border-color:#9baaa4; }
+    .viewer-tool:disabled { opacity:.42; cursor:not-allowed; }
+    .viewer-review { color:var(--accent-dark); background:var(--accent-soft); border-color:#b7d7cc; }
+    .viewer-page-jump { display:flex; align-items:center; gap:5px; color:var(--muted); font-size:11px; }
+    .viewer-page-jump input { width:54px; border:1px solid var(--line); border-radius:8px; padding:7px 5px; text-align:center; }
+    .viewer-body { flex:1; min-height:0; display:grid; grid-template-columns:330px minmax(0,1fr); position:relative; }
+    .viewer-sidebar { min-height:0; background:#fdfdf9; border-right:1px solid #cfd7d1; display:flex; flex-direction:column; z-index:3; }
+    .viewer-sidebar-head { padding:14px 12px 10px; border-bottom:1px solid var(--line); }
+    .viewer-sidebar-head .search { width:100%; min-width:0; }
+    .viewer-sidebar-note { margin-top:8px; color:var(--muted); font-size:10px; line-height:1.45; }
+    .viewer-spec-list { flex:1; min-height:0; overflow:auto; position:relative; overscroll-behavior:contain; scrollbar-gutter:stable; scrollbar-color:#73847d #e6ebe7; scrollbar-width:auto; }
+    .viewer-spec-spacer { width:100%; position:relative; }
+    .viewer-nav-row { position:absolute; left:0; right:0; }
+    .viewer-division-row { height:32px; padding:9px 12px 5px; background:#edf3ef; color:var(--accent-dark); font-size:10px; font-weight:820; letter-spacing:.035em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-bottom:1px solid #dce4de; }
+    .viewer-spec-row { width:100%; height:72px; padding:10px 12px; text-align:left; border:0; border-bottom:1px solid #e7ebe7; background:#fffefb; color:var(--ink); display:block; }
+    .viewer-spec-row:hover { background:#f2f7f4; }
+    .viewer-spec-row.active { background:var(--accent-soft); box-shadow:inset 4px 0 0 var(--accent); }
+    .viewer-spec-code { font-family:"SFMono-Regular",Consolas,monospace; font-size:12px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .viewer-spec-name { font-size:11px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .viewer-spec-meta { color:var(--muted); font-size:9.5px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .viewer-main { min-width:0; min-height:0; display:flex; flex-direction:column; }
+    .viewer-meta { min-height:44px; display:flex; align-items:center; justify-content:flex-start; gap:13px; padding:6px 12px 6px 10px; background:#f5f7f4; border-bottom:1px solid #d5dcd6; color:var(--muted); font-size:10px; overflow:hidden; }
+    .viewer-meta-info { display:flex; min-width:0; gap:13px; white-space:nowrap; overflow:hidden; }
+    .viewer-meta-info span { overflow:hidden; text-overflow:ellipsis; }
+    .viewer-find { flex:0 0 auto; display:flex; align-items:center; gap:5px; order:-1; }
+    .viewer-find input { width:235px; border:1px solid var(--line); border-radius:8px; background:#fff; padding:7px 9px; outline:none; font-size:11px; }
+    .viewer-find .viewer-tool { min-height:31px; padding:5px 8px; font-size:11px; }
+    .viewer-find-status { min-width:124px; max-width:190px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:720; color:#46564f; }
+    .viewer-summary-button { color:var(--accent-dark); border-color:#b7d7cc !important; }
+    .viewer-scope-button.active { color:var(--accent-dark); background:var(--accent-soft); border-color:#9bcbbb; }
+    .viewer-search-scope { display:inline-flex; align-items:center; gap:6px; padding:5px 8px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); font-size:10px; font-weight:730; white-space:nowrap; cursor:pointer; }
+    .viewer-search-scope input { width:14px; height:14px; margin:0; accent-color:var(--accent); }
+    .viewer-scope-panel { flex:0 0 auto; padding:12px 14px 13px; border-bottom:1px solid #cbd5ce; background:#fffefb; box-shadow:0 8px 22px rgba(18,34,29,.10); z-index:3; }
+    .viewer-scope-panel[hidden] { display:none; }
+    .viewer-scope-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:10px; }
+    .viewer-scope-title { color:var(--ink); font-size:13px; font-weight:810; }
+    .viewer-scope-summary { margin-top:2px; color:var(--muted); font-size:10px; }
+    .viewer-scope-mode { display:flex; align-items:center; gap:7px; margin-top:8px; color:var(--muted); font-size:10px; font-weight:720; }
+    .viewer-scope-mode-options { display:inline-flex; padding:2px; border:1px solid var(--line); border-radius:8px; background:#f2f5f2; }
+    .viewer-scope-mode-option { position:relative; display:inline-flex; align-items:center; border-radius:6px; color:var(--muted); cursor:pointer; }
+    .viewer-scope-mode-option input { position:absolute; opacity:0; pointer-events:none; }
+    .viewer-scope-mode-option span { display:block; padding:4px 7px; border-radius:6px; }
+    .viewer-scope-mode-option input:checked + span { color:#fff; background:var(--accent-dark); }
+    .viewer-scope-actions { display:flex; gap:6px; }
+    .viewer-scope-actions .viewer-tool { min-height:30px; padding:4px 9px; font-size:10px; }
+    .viewer-scope-grid { display:grid; grid-template-columns:repeat(4,minmax(150px,1fr)); gap:10px; }
+    .viewer-scope-group { min-width:0; border:1px solid var(--line); border-radius:10px; background:#f8faf7; overflow:hidden; }
+    .viewer-scope-group-title { padding:8px 9px 6px; border-bottom:1px solid #e1e7e2; color:var(--accent-dark); font-size:10px; font-weight:810; letter-spacing:.018em; }
+    .viewer-scope-options { max-height:150px; overflow:auto; padding:4px; scrollbar-gutter:stable; }
+    .viewer-scope-option { display:grid; grid-template-columns:15px minmax(0,1fr) auto; align-items:center; gap:6px; padding:5px 6px; border-radius:6px; color:var(--ink); font-size:10px; cursor:pointer; }
+    .viewer-scope-option:hover { background:#eaf2ed; }
+    .viewer-scope-option input { width:14px; height:14px; margin:0; accent-color:var(--accent); }
+    .viewer-scope-option-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .viewer-scope-option-count { color:var(--muted); font-variant-numeric:tabular-nums; }
+    .viewer-viewport { flex:1; min-height:0; overflow-y:scroll; overflow-x:auto; position:relative; overscroll-behavior:contain; background:#dfe4df; scrollbar-gutter:stable both-edges; scrollbar-color:#52675f #cfd7d1; scrollbar-width:auto; }
+    .viewer-viewport::-webkit-scrollbar { width:16px; height:16px; }
+    .viewer-viewport::-webkit-scrollbar-track { background:#cfd7d1; border-left:1px solid #bbc6be; }
+    .viewer-viewport::-webkit-scrollbar-thumb { min-height:48px; background:#60756d; border:3px solid #cfd7d1; border-radius:999px; }
+    .viewer-viewport::-webkit-scrollbar-thumb:hover { background:#40564e; }
+    .viewer-viewport::-webkit-scrollbar-corner { background:#cfd7d1; }
+    .viewer-spec-list::-webkit-scrollbar { width:12px; }
+    .viewer-spec-list::-webkit-scrollbar-track { background:#e6ebe7; }
+    .viewer-spec-list::-webkit-scrollbar-thumb { background:#7a8c84; border:3px solid #e6ebe7; border-radius:999px; }
+    .viewer-pages { position:relative; min-height:100%; }
+    .viewer-page-slot { position:absolute; left:50%; transform:translateX(-50%); background:#fff; box-shadow:0 5px 22px rgba(22,33,32,.22); overflow:hidden; display:grid; place-items:center; }
+    .viewer-page-slot::before { content:"Page " attr(data-page); color:#9aa6a0; font-size:12px; }
+    .viewer-page-slot.rendered::before { display:none; }
+    .viewer-page-slot canvas { display:block; width:100%; height:100%; }
+    .viewer-highlight-layer { position:absolute; inset:0; pointer-events:none; z-index:2; overflow:hidden; }
+    .viewer-highlight { position:absolute; min-width:4px; border-radius:2px; background:rgba(255,220,39,.58); border:1px solid rgba(190,126,0,.72); box-shadow:0 0 0 1px rgba(255,255,255,.28), 0 1px 4px rgba(92,61,0,.22); mix-blend-mode:multiply; animation:viewer-highlight-in .26s ease-out; }
+    .viewer-highlight.active { background:rgba(72,220,126,.66); border-color:rgba(8,113,58,.92); box-shadow:0 0 0 2px rgba(255,255,255,.72), 0 0 0 4px rgba(19,147,76,.30), 0 2px 7px rgba(7,77,38,.30); mix-blend-mode:multiply; }
+    @keyframes viewer-highlight-in { from { opacity:.15; transform:scaleY(.6); } to { opacity:1; transform:scaleY(1); } }
+    .viewer-loading { position:absolute; inset:0; display:grid; place-items:center; padding:30px; text-align:center; color:var(--muted); background:#e4e9e4; z-index:2; }
+    .viewer-loading[hidden] { display:none; }
+    .viewer-loading strong { display:block; color:var(--ink); font-size:17px; margin-bottom:6px; }
+    .viewer-performance { display:inline-flex; align-items:center; gap:6px; }
+    .viewer-performance::before { content:""; width:7px; height:7px; border-radius:50%; background:#38a67f; }
+    #viewerDialog.sidebar-collapsed .viewer-body { grid-template-columns:0 minmax(0,1fr); }
+    #viewerDialog.sidebar-collapsed .viewer-sidebar { visibility:hidden; overflow:hidden; border-right:0; }
+    .search-summary-modal { position:absolute; inset:0; z-index:10; display:grid; place-items:center; padding:22px; background:rgba(16,28,26,.58); backdrop-filter:blur(4px); }
+    .search-summary-modal[hidden] { display:none; }
+    .search-summary-card { width:min(920px, 100%); max-height:min(82vh, 900px); display:flex; flex-direction:column; border:1px solid #cbd5ce; border-radius:18px; background:#fffefb; box-shadow:0 28px 90px rgba(7,20,17,.35); overflow:hidden; }
+    .search-summary-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:18px 20px 14px; border-bottom:1px solid var(--line); }
+    .search-summary-title { font-size:20px; font-weight:820; letter-spacing:-.025em; }
+    .search-summary-sub { margin-top:4px; color:var(--muted); font-size:11px; }
+    .search-summary-body { overflow:auto; padding:10px 18px 22px; scrollbar-gutter:stable; }
+    .search-summary-spec { margin-top:10px; border:1px solid var(--line); border-radius:13px; overflow:hidden; }
+    .search-summary-spec-head { position:sticky; top:0; z-index:1; padding:11px 13px; background:#edf3ef; color:var(--accent-dark); font-weight:790; }
+    .search-summary-spec-head small { color:var(--muted); font-weight:650; margin-left:8px; }
+    .search-result-row { width:100%; display:grid; grid-template-columns:70px minmax(0,1fr); gap:10px; padding:12px 13px; text-align:left; border:0; border-top:1px solid #e6ebe7; background:#fffefb; color:var(--ink); cursor:pointer; }
+    .search-result-row:hover { background:#f3f8f5; }
+    .search-result-row.active { background:#e4f4ea; box-shadow:inset 4px 0 0 #159455; }
+    .search-result-number { color:var(--muted); font-size:10px; font-weight:760; }
+    .search-result-context { font-size:12px; line-height:1.55; }
+    .search-result-context mark { background:#ffe96b; color:inherit; border-radius:2px; padding:0 1px; }
+    .search-result-meta { margin-bottom:4px; color:var(--accent-dark); font-size:10px; font-weight:760; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events:none; z-index: 20; background:var(--ink); color:#fff; border-radius:11px; padding:12px 16px; box-shadow:0 12px 40px rgba(0,0,0,.25); font-size:13px; transition:.22s ease; max-width:min(560px, calc(100% - 28px)); text-align:center; }
+    .toast.show { opacity:1; transform:translate(-50%, 0); }
+
+    footer { text-align:center; color:var(--muted); font-size:11px; padding: 10px 0 24px; }
+
+    @media (max-width: 820px) {
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .package-info, .output-grid { grid-template-columns: 1fr; }
+      .viewer-launch { grid-template-columns:1fr; }
+      .search { min-width: 0; width:100%; }
+      .toolbar { width:100%; }
+      .exception-row { grid-template-columns: 110px 1fr; }
+      .status-pill { grid-column: 2; }
+      .spec-table th:nth-child(4), .spec-table td:nth-child(4), .spec-table th:nth-child(6), .spec-table td:nth-child(6) { display:none; }
+      .viewer-body { grid-template-columns:1fr; }
+      .viewer-sidebar { position:absolute; inset:0 auto 0 0; width:min(330px, 88vw); transform:translateX(-102%); transition:transform .18s ease; box-shadow:12px 0 40px rgba(17,30,27,.25); }
+      #viewerDialog.sidebar-open .viewer-sidebar { transform:translateX(0); }
+      #viewerDialog.sidebar-collapsed .viewer-body { grid-template-columns:1fr; }
+      #viewerDialog.sidebar-collapsed .viewer-sidebar { visibility:visible; }
+      .viewer-current-title, .viewer-meta-info { display:none; }
+      .viewer-meta { justify-content:flex-end; }
+      .viewer-find { width:100%; flex-wrap:wrap; }
+      .viewer-find input { flex:1; width:auto; min-width:190px; }
+      .viewer-find-status { display:none; }
+      .viewer-topbar { align-items:flex-start; }
+      .viewer-scope-grid { grid-template-columns:repeat(2,minmax(140px,1fr)); }
+    }
+    @media (max-width: 540px) {
+      .shell { width:min(100% - 22px, 1180px); }
+      header { padding-top:16px; }
+      .privacy { display:none; }
+      .header-actions { gap:6px; }
+      main { padding-top:24px; }
+      .drop-card { padding:28px 16px; }
+      .summary-grid { gap:8px; }
+      .stat { padding:14px; }
+      .stat-value { font-size:23px; }
+      .dialog-tools .search { width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.5 3.5h8l3 3v14h-11z"/><path d="M14.5 3.5v4h4M9 11h6M9 14.5h6M9 18h4"/></svg>
+        </div>
+        <div><div class="brand-name">Spec Navigator</div><div class="brand-sub">Project specification compiler</div></div>
+      </div>
+      <div class="header-actions">
+        <button id="versionButton" class="version-button" type="button" title="View changelog and check for updates"><span id="versionButtonText">v1.0.0</span><span id="versionUpdateDot" class="version-dot" aria-label="Update available" hidden></span></button>
+        <div class="privacy">Files stay on this device</div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">Project specification navigator</div>
+        <h1>Compile every spec<br>in one place.</h1>
+        <p>Load a project folder or ZIP to reconcile the Excel index against every division, apply the package and revision rules, and browse the complete included spec set from one fast, searchable workspace.</p>
+      </section>
+
+      <section id="dropZone" class="drop-card" tabindex="0" role="button" aria-label="Drop a project folder or ZIP file">
+        <div class="drop-inner">
+          <div class="drop-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7.5h6l2 2h8v9.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z"/><path d="M12 17V11m-2.5 2.5L12 11l2.5 2.5"/></svg></div>
+          <div class="drop-title">Drop the full project package here</div>
+          <div class="drop-copy">Use a ZIP file, or choose the uncompressed root folder itself.</div>
+          <div class="button-row">
+            <button id="zipButton" class="btn primary" type="button">Choose ZIP</button>
+            <button id="folderButton" class="btn" type="button">Choose folder</button>
+          </div>
+          <input id="zipInput" class="hidden-input" type="file" accept=".zip,application/zip">
+          <input id="folderInput" class="hidden-input" type="file" webkitdirectory directory multiple>
+          <div class="requirements">
+            <span class="chip">Current Project Specifications Index.xlsx</span>
+            <span class="chip">DIVISION 00–45 folders</span>
+            <span class="chip">PDF specifications</span>
+            <span class="chip">Hyphen, DAT/APP, and old revisions excluded</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="workspace" aria-live="polite">
+        <div class="summary-grid">
+          <div class="stat"><div class="stat-label">XLSX index rows</div><div id="statIndex" class="stat-value">0</div></div>
+          <div class="stat"><div class="stat-label">Matched + included</div><div id="statMatched" class="stat-value good">0</div></div>
+          <div class="stat"><div class="stat-label">Folder-only + included</div><div id="statExtra" class="stat-value good">0</div></div>
+          <div class="stat"><div class="stat-label">Index rows not found</div><div id="statMissing" class="stat-value warn">0</div></div>
+          <div class="stat"><div class="stat-label">Rule-excluded PDFs</div><div id="statSkipped" class="stat-value warn">0</div></div>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div><div class="panel-title">Package check</div><div id="packageStatus" class="panel-sub">Waiting for a package.</div></div>
+            <div class="toolbar">
+              <button id="exportManifestButton" class="btn" type="button" disabled>Export audit CSV</button>
+              <button id="exceptionsButton" class="btn" type="button" disabled>Review reconciliation</button>
+              <button id="newPackageButton" class="btn ghost" type="button">Load another package</button>
+            </div>
+          </div>
+          <div class="package-info">
+            <div class="info-box"><div class="info-label">Excel index</div><div id="indexFileName" class="info-value">—</div></div>
+            <div class="info-box"><div class="info-label">Detected divisions</div><div id="divisionSummary" class="info-value">—</div></div>
+          </div>
+          <div id="progressWrap" class="progress-wrap">
+            <div class="progress-copy"><span id="progressLabel">Reading package…</span><span id="progressPercent">0%</span></div>
+            <div class="track"><div id="progressBar" class="bar"></div></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div><div class="panel-title">Compilation manifest</div><div id="matchSubtitle" class="panel-sub">Every non-hyphen PDF that will be included, grouped by division.</div></div>
+            <div class="toolbar"><input id="matchSearch" class="search" type="search" placeholder="Search number, filename, status…" aria-label="Search compilation manifest"></div>
+          </div>
+          <div id="divisionList" class="division-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="viewer-launch">
+            <div>
+              <div class="viewer-launch-title">Browse the complete spec set here</div>
+              <div class="viewer-launch-copy">Use a clickable, searchable table of contents without first creating one enormous combined PDF. The viewer loads one source spec at a time, renders only the current page and a two-page buffer on each side, and can optionally search the text of every included spec.</div>
+              <div class="viewer-proof"><span>Same filtered manifest</span><span>Virtualized spec list</span><span>Optional all-spec search</span><span>Sharp page rendering</span><span>Bounded PDF loading</span></div>
+            </div>
+            <button id="openViewerButton" class="btn primary" type="button" disabled>Open Spec Viewer</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div><div class="panel-title">Optional: export a combined PDF</div><div class="panel-sub">Use this only when a single handoff file is required. Daily browsing will be much faster in the Spec Viewer above.</div></div>
+          </div>
+          <div class="output-grid">
+            <div class="field-wrap"><label for="projectTitle">PDF title</label><input id="projectTitle" class="field" value="Project Specifications" maxlength="120"></div>
+            <div class="field-wrap"><label for="outputName">Download filename</label><input id="outputName" class="field" value="Project_Specifications.pdf" maxlength="120"></div>
+            <button id="buildButton" class="btn dark" type="button" disabled>Build optimized PDF</button>
+          </div>
+          <div class="build-note">Selection order: exclude hyphenated paths, exclude filenames containing DAT or APP, then keep only the highest filename r# for each repeated spec number. Index matches receive the XLSX description, discipline, revision, and date; remaining winners are labeled “Folder only.” The lossless optimizer compresses raw streams and removes byte-identical resources without rasterizing pages or lowering image quality.</div>
+        </section>
+      </section>
+    </main>
+    <footer>Standalone application · no upload, account, or server required</footer>
+  </div>
+
+  <dialog id="updateDialog" aria-labelledby="updateDialogTitle">
+    <div class="dialog-head">
+      <div><div id="updateDialogTitle" class="dialog-title">Spec Navigator updates</div><div id="updateDialogSub" class="panel-sub">Current version v1.0.0</div></div>
+      <button id="updateDialogClose" class="close" type="button" aria-label="Close update window">×</button>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Version information">
+      <button id="updateTab" class="tab" type="button" role="tab" aria-selected="false">Update</button>
+      <button id="changelogTab" class="tab active" type="button" role="tab" aria-selected="true">Changelog</button>
+    </div>
+    <div class="update-body">
+      <section id="updatePane" class="update-pane" role="tabpanel" hidden></section>
+      <section id="changelogPane" class="update-pane" role="tabpanel"></section>
+    </div>
+  </dialog>
+
+  <dialog id="exceptionsDialog" aria-labelledby="exceptionsTitle">
+    <div class="dialog-head">
+      <div><div id="exceptionsTitle" class="dialog-title">File audit</div><div class="panel-sub">See exactly what is included, missing from the folder, or deliberately excluded.</div></div>
+      <button id="closeDialog" class="close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="tabs" role="tablist">
+      <button id="missingTab" class="tab active" type="button" role="tab" aria-selected="true">Index not found <span id="missingBadge" class="badge">0</span></button>
+      <button id="extraTab" class="tab" type="button" role="tab" aria-selected="false">Folder only · included <span id="extraBadge" class="badge">0</span></button>
+      <button id="skippedTab" class="tab" type="button" role="tab" aria-selected="false">Rule-excluded <span id="skippedBadge" class="badge">0</span></button>
+    </div>
+    <div class="dialog-tools">
+      <input id="exceptionSearch" class="search" type="search" placeholder="Filter this list…" aria-label="Filter reconciliation list">
+      <button id="exportCsv" class="btn" type="button">Export current tab as CSV</button>
+    </div>
+    <div id="exceptionBody" class="dialog-body"></div>
+    <div class="dialog-foot"><button id="doneDialog" class="btn primary" type="button">Done</button></div>
+  </dialog>
+
+  <dialog id="viewerDialog" aria-labelledby="viewerCurrentSpec">
+    <div class="viewer-app">
+      <div class="viewer-topbar">
+        <button id="viewerReviewPackage" class="viewer-tool viewer-review" type="button" title="Review included, missing, and excluded files">Review package</button>
+        <button id="viewerNavToggle" class="viewer-tool" type="button" aria-label="Show table of contents" title="Show or hide the specification contents">Contents</button>
+        <div class="viewer-identity">
+          <div id="viewerCurrentSpec" class="viewer-current-spec">Spec Viewer</div>
+          <div id="viewerCurrentTitle" class="viewer-current-title">Choose a specification from the contents.</div>
+        </div>
+        <div class="viewer-controls">
+          <button id="viewerPrevSpec" class="viewer-tool" type="button" title="Previous specification ([)">Previous spec</button>
+          <button id="viewerNextSpec" class="viewer-tool" type="button" title="Next specification (])">Next spec</button>
+          <button id="viewerZoomOut" class="viewer-tool" type="button" aria-label="Zoom out 25 percent" title="Zoom out 25% (Ctrl/Cmd + -)">−</button>
+          <button id="viewerFitWidth" class="viewer-tool" type="button" title="Reset to fit width">Fit · 100%</button>
+          <button id="viewerZoomIn" class="viewer-tool" type="button" aria-label="Zoom in 25 percent" title="Zoom in 25% (Ctrl/Cmd + +)">+</button>
+          <label class="viewer-page-jump">Page <input id="viewerPageInput" type="number" min="1" value="1" aria-label="Go to page"> / <span id="viewerPageCount">0</span></label>
+        </div>
+        <button id="viewerClose" class="close" type="button" aria-label="Close viewer" title="Close viewer (Esc)">×</button>
+      </div>
+      <div class="viewer-body">
+        <aside class="viewer-sidebar" aria-label="Virtualized specification table of contents">
+          <div class="viewer-sidebar-head">
+            <input id="viewerSearch" class="search" type="search" placeholder="Search number, title, discipline, rev…" aria-label="Search included specifications">
+            <div id="viewerListSummary" class="viewer-sidebar-note">The list exactly matches the included compilation manifest.</div>
+          </div>
+          <div id="viewerSpecList" class="viewer-spec-list"><div id="viewerSpecSpacer" class="viewer-spec-spacer"></div></div>
+        </aside>
+        <section class="viewer-main" aria-label="Specification document">
+          <div class="viewer-meta">
+            <div class="viewer-find">
+              <input id="viewerDocSearch" type="search" placeholder="Find text… Use ; for multiple terms" aria-label="Find one or more values in the current specification">
+              <label class="viewer-search-scope" title="Search every included source PDF sequentially"><input id="viewerSearchAll" type="checkbox">All specs</label>
+              <button id="viewerScopeButton" class="viewer-tool viewer-scope-button" type="button" aria-expanded="false" aria-controls="viewerScopePanel" title="Limit text search by division, upper-level section, discipline, or source">Scope: All</button>
+              <button id="viewerFind" class="viewer-tool" type="button">Find</button>
+              <button id="viewerFindPrev" class="viewer-tool" type="button" aria-label="Previous text match" disabled>↑</button>
+              <button id="viewerFindNext" class="viewer-tool" type="button" aria-label="Next text match" disabled>↓</button>
+              <button id="viewerSearchSummary" class="viewer-tool viewer-summary-button" type="button" title="Show every occurrence with sentence context" disabled>Summary</button>
+              <span id="viewerFindStatus" class="viewer-find-status" role="status" aria-live="polite">—</span>
+            </div>
+            <div class="viewer-meta-info"><span id="viewerDivision">—</span><span id="viewerRevision">—</span><span id="viewerPath">—</span><span class="viewer-performance">Focused page: 3× · up to 32 MP · 5-page window</span></div>
+          </div>
+          <div id="viewerScopePanel" class="viewer-scope-panel" hidden>
+            <div class="viewer-scope-head">
+              <div>
+                <div class="viewer-scope-title">Search scope</div>
+                <div id="viewerScopeSummary" class="viewer-scope-summary">All included specifications are eligible.</div>
+                <div class="viewer-scope-mode"><span>Match selected categories</span><span class="viewer-scope-mode-options" role="radiogroup" aria-label="Scope matching mode"><label class="viewer-scope-mode-option" title="Require every selected filter category"><input id="viewerScopeModeAnd" type="radio" name="viewerScopeMode" value="and" data-viewer-scope-mode checked><span>AND</span></label><label class="viewer-scope-mode-option" title="Accept any selected filter category"><input id="viewerScopeModeOr" type="radio" name="viewerScopeMode" value="or" data-viewer-scope-mode><span>OR</span></label></span></div>
+              </div>
+              <div class="viewer-scope-actions"><button id="viewerScopeClear" class="viewer-tool" type="button">Clear filters</button><button id="viewerScopeDone" class="viewer-tool viewer-review" type="button">Done</button></div>
+            </div>
+            <div class="viewer-scope-grid">
+              <section class="viewer-scope-group"><div class="viewer-scope-group-title">Divisions</div><div id="viewerScopeDivisions" class="viewer-scope-options"></div></section>
+              <section class="viewer-scope-group"><div class="viewer-scope-group-title">Upper-level sections (XX_XX)</div><div id="viewerScopeSections" class="viewer-scope-options"></div></section>
+              <section class="viewer-scope-group"><div class="viewer-scope-group-title">Disciplines</div><div id="viewerScopeDisciplines" class="viewer-scope-options"></div></section>
+              <section class="viewer-scope-group"><div class="viewer-scope-group-title">Included source</div><div id="viewerScopeSources" class="viewer-scope-options"></div></section>
+            </div>
+          </div>
+          <div id="viewerViewport" class="viewer-viewport">
+            <div id="viewerPages" class="viewer-pages"></div>
+            <div id="viewerLoading" class="viewer-loading"><div><strong>Choose a specification</strong>Use the searchable contents to start browsing.</div></div>
+          </div>
+        </section>
+        <div id="viewerSearchSummaryModal" class="search-summary-modal" role="dialog" aria-modal="true" aria-labelledby="viewerSearchSummaryTitle" hidden>
+          <div class="search-summary-card">
+            <div class="search-summary-head">
+              <div><div id="viewerSearchSummaryTitle" class="search-summary-title">Search summary</div><div id="viewerSearchSummarySub" class="search-summary-sub">Every occurrence, grouped by specification.</div></div>
+              <button id="viewerSearchSummaryClose" class="close" type="button" aria-label="Close search summary">×</button>
+            </div>
+            <div id="viewerSearchSummaryBody" class="search-summary-body"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script>/*__JSZIP__*/</script>
+  <script>/*__XLSX__*/</script>
+  <script>/*__PDFLIB__*/</script>
+  <script>/*__PAKO__*/</script>
+  <script>/*__PDFJS__*/</script>
+  <script id="pdfWorkerSource" type="text/plain">/*__PDFJS_WORKER__*/</script>
+  <script>
+  (() => {
+    'use strict';
+
+    const el = id => document.getElementById(id);
+    const APP_VERSION = '__SPEC_NAVIGATOR_APP_VERSION__';
+    const UPDATE_REPOSITORY = 'noahfgarrett/Spec-Navigator';
+    const UPDATE_MANIFEST_URL = `https://raw.githubusercontent.com/${UPDATE_REPOSITORY}/main/latest.json`;
+    const UPDATE_TIMEOUT_MS = 6000;
+    const LOCAL_CHANGELOG = /*__SPEC_NAVIGATOR_CHANGELOG__*/;
+    const updater = {
+      status:'idle', info:null, checkPromise:null, error:'', activeTab:'changelog',
+      downloading:false, downloaded:false, downloadError:'', checkedAt:0
+    };
+    const state = {
+      entries: [], indexEntry: null, rows: [], matches: [], missing: [], extras: [],
+      divisions: new Map(), excludedFiles: [], lastOptimization: null, exceptionTab: 'missing', busy: false, packageName: ''
+    };
+    const VIEWER_RENDER_RADIUS = 2;
+    const VIEWER_FOCUSED_MAX_CANVAS_PIXELS = 32000000;
+    const VIEWER_BUFFER_MAX_CANVAS_PIXELS = 12000000;
+    const VIEWER_FOCUSED_PIXEL_RATIO = 3;
+    const VIEWER_BUFFER_PIXEL_RATIO = 2;
+    const VIEWER_ZOOM_COMMAND_STEP = .25;
+    const VIEWER_ZOOM_WHEEL_STEP = .05;
+    const VIEWER_ZOOM_SETTLE_MS = 140;
+    const viewer = {
+      items: [], selectedIndex: -1, navRows: [], navTotalHeight: 0,
+      loadingTask: null, pdfDoc: null, loadToken: 0, pageDims: [], pageLayouts: [], pageSlots: [],
+      renderTasks: new Map(), rendered: new Set(), renderRoles: new Map(), currentPage: 0, zoom: 1,
+      viewportRaf: 0, navRaf: 0, workerUrl: '', resizeObserver: null, zoomSettleTimer:0, wheelZooming:false,
+      pageText: new Map(), textMatches: [], textMatchIndex: -1, textSearchToken: 0, lastTextQuery: '',
+      searchingAll: false, searchLoadingTask: null, activeHighlight: null, highlightScrollKey: '', searchTerms: [],
+      searchScope: { divisions:new Set(), sections:new Set(), disciplines:new Set(), sources:new Set() }, scopeMode:'and',
+      scopeOptions: { divisions:[], sections:[], disciplines:[], sources:[] }, lastSearchScopeLabel: '', lastSearchSpecCount: 0
+    };
+
+    const dropZone = el('dropZone');
+    const zipInput = el('zipInput');
+    const folderInput = el('folderInput');
+    const workspace = el('workspace');
+    const dialog = el('exceptionsDialog');
+    const viewerDialog = el('viewerDialog');
+    const updateDialog = el('updateDialog');
+
+    el('versionButton').addEventListener('click', () => openUpdateDialog(updater.info ? 'update' : 'changelog', true));
+    el('updateDialogClose').addEventListener('click', closeUpdateDialog);
+    el('updateTab').addEventListener('click', () => setUpdateDialogTab('update'));
+    el('changelogTab').addEventListener('click', () => setUpdateDialogTab('changelog'));
+    el('updatePane').addEventListener('click', handleUpdatePaneClick);
+
+    el('zipButton').addEventListener('click', e => { e.stopPropagation(); zipInput.click(); });
+    el('folderButton').addEventListener('click', chooseFolder);
+    dropZone.addEventListener('click', e => { if (e.target === dropZone || e.target.closest('.drop-inner') && !e.target.closest('button')) zipInput.click(); });
+    dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zipInput.click(); } });
+    ['dragenter','dragover'].forEach(type => dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(type => dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+    dropZone.addEventListener('drop', handleDrop);
+    zipInput.addEventListener('change', () => zipInput.files[0] && loadZip(zipInput.files[0]));
+    folderInput.addEventListener('change', () => folderInput.files.length && loadFiles([...folderInput.files], folderInput.files[0].webkitRelativePath.split('/')[0] || 'Project folder'));
+    el('newPackageButton').addEventListener('click', resetApp);
+    el('exceptionsButton').addEventListener('click', openExceptions);
+    el('closeDialog').addEventListener('click', () => dialog.close());
+    el('doneDialog').addEventListener('click', () => dialog.close());
+    el('missingTab').addEventListener('click', () => setExceptionTab('missing'));
+    el('extraTab').addEventListener('click', () => setExceptionTab('extra'));
+    el('skippedTab').addEventListener('click', () => setExceptionTab('skipped'));
+    el('exceptionSearch').addEventListener('input', renderExceptions);
+    el('matchSearch').addEventListener('input', renderMatches);
+    el('exportCsv').addEventListener('click', exportExceptionCsv);
+    el('exportManifestButton').addEventListener('click', exportManifestCsv);
+    el('buildButton').addEventListener('click', buildPdf);
+    el('openViewerButton').addEventListener('click', openViewer);
+    el('viewerClose').addEventListener('click', closeViewerDialog);
+    el('viewerReviewPackage').addEventListener('click', reviewViewerPackage);
+    el('viewerDialog').addEventListener('close', closeViewer);
+    el('viewerNavToggle').addEventListener('click', toggleViewerSidebar);
+    el('viewerSearch').addEventListener('input', buildViewerNav);
+    el('viewerSpecList').addEventListener('scroll', scheduleViewerNavRender, { passive:true });
+    el('viewerSpecList').addEventListener('click', event => {
+      const row = event.target.closest('[data-viewer-index]');
+      if (row) selectViewerSpec(Number(row.dataset.viewerIndex));
+    });
+    el('viewerViewport').addEventListener('scroll', scheduleViewerPageWindow, { passive:true });
+    el('viewerViewport').addEventListener('wheel', handleViewerWheelZoom, { passive:false });
+    el('viewerPrevSpec').addEventListener('click', () => selectViewerSpec(viewer.selectedIndex - 1));
+    el('viewerNextSpec').addEventListener('click', () => selectViewerSpec(viewer.selectedIndex + 1));
+    el('viewerZoomOut').addEventListener('click', () => setViewerZoom(viewer.zoom - VIEWER_ZOOM_COMMAND_STEP));
+    el('viewerZoomIn').addEventListener('click', () => setViewerZoom(viewer.zoom + VIEWER_ZOOM_COMMAND_STEP));
+    el('viewerFitWidth').addEventListener('click', () => setViewerZoom(1));
+    el('viewerPageInput').addEventListener('change', jumpToViewerPage);
+    el('viewerPageInput').addEventListener('focus', event => event.target.select());
+    el('viewerPageInput').addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); jumpToViewerPage(); } });
+    el('viewerFind').addEventListener('click', searchViewerDocument);
+    el('viewerDocSearch').addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); searchViewerDocument(); } });
+    el('viewerDocSearch').addEventListener('search', () => { if (!el('viewerDocSearch').value) clearViewerTextSearch(); });
+    el('viewerSearchAll').addEventListener('change', changeViewerSearchScope);
+    el('viewerScopeButton').addEventListener('click', toggleViewerScopePanel);
+    el('viewerScopeDone').addEventListener('click', closeViewerScopePanel);
+    el('viewerScopeClear').addEventListener('click', clearViewerScopeFilters);
+    el('viewerScopePanel').addEventListener('change', changeViewerScopeFilter);
+    el('viewerFindPrev').addEventListener('click', () => stepViewerTextMatch(-1));
+    el('viewerFindNext').addEventListener('click', () => stepViewerTextMatch(1));
+    el('viewerSearchSummary').addEventListener('click', openViewerSearchSummary);
+    el('viewerSearchSummaryClose').addEventListener('click', closeViewerSearchSummary);
+    el('viewerSearchSummaryModal').addEventListener('click', event => { if (event.target === el('viewerSearchSummaryModal')) closeViewerSearchSummary(); });
+    el('viewerSearchSummaryBody').addEventListener('click', event => {
+      const result = event.target.closest('[data-search-result-index]');
+      if (!result) return;
+      viewer.textMatchIndex = Number(result.dataset.searchResultIndex);
+      closeViewerSearchSummary();
+      goToViewerTextMatch();
+    });
+    document.addEventListener('keydown', handleViewerShortcuts);
+    viewer.resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(() => {
+      if (viewer.pdfDoc) relayoutViewerPages(true);
+    }) : null;
+    viewer.resizeObserver?.observe(el('viewerViewport'));
+
+    function handleViewerShortcuts(event) {
+      if (!viewerDialog.open) return;
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName) || event.target?.isContentEditable;
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        el('viewerDocSearch').focus();
+        el('viewerDocSearch').select();
+      } else if ((event.ctrlKey || event.metaKey) && (event.key === '+' || event.key === '=')) {
+        event.preventDefault(); setViewerZoom(viewer.zoom + VIEWER_ZOOM_COMMAND_STEP);
+      } else if ((event.ctrlKey || event.metaKey) && event.key === '-') {
+        event.preventDefault(); setViewerZoom(viewer.zoom - VIEWER_ZOOM_COMMAND_STEP);
+      } else if (!typing && event.key === '[') {
+        event.preventDefault(); selectViewerSpec(viewer.selectedIndex - 1);
+      } else if (!typing && event.key === ']') {
+        event.preventDefault(); selectViewerSpec(viewer.selectedIndex + 1);
+      } else if (event.key === 'Escape' && !el('viewerSearchSummaryModal').hidden) {
+        event.preventDefault(); closeViewerSearchSummary();
+      } else if (event.key === 'Escape' && !el('viewerScopePanel').hidden) {
+        event.preventDefault(); closeViewerScopePanel();
+      } else if (event.key === 'Escape' && viewer.searchingAll) {
+        event.preventDefault(); clearViewerTextSearch(false); el('viewerFindStatus').textContent = 'Cancelled';
+      }
+    }
+
+    function toggleViewerSidebar() {
+      const mobile = window.matchMedia?.('(max-width: 820px)').matches;
+      if (mobile) viewerDialog.classList.toggle('sidebar-open');
+      else viewerDialog.classList.toggle('sidebar-collapsed');
+      const visible = mobile ? viewerDialog.classList.contains('sidebar-open') : !viewerDialog.classList.contains('sidebar-collapsed');
+      el('viewerNavToggle').setAttribute('aria-expanded', String(visible));
+      setTimeout(() => viewer.pdfDoc && relayoutViewerPages(true), 190);
+    }
+
+    function compareVersions(remote, local) {
+      const parse = value => {
+        const match = String(value || '').trim().replace(/^v/i,'').match(/^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/);
+        return match ? match.slice(1,4).map(Number) : null;
+      };
+      const a = parse(remote); const b = parse(local);
+      if (!a || !b) return 0;
+      for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i] ? 1 : -1;
+      return 0;
+    }
+
+    function normalizeUpdateManifest(value) {
+      if (!value || typeof value !== 'object') throw new Error('The update manifest is not valid JSON data.');
+      const version = String(value.version || '').trim().replace(/^v/i,'');
+      if (!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) throw new Error('The update manifest has an invalid version.');
+      const downloadUrl = new URL(String(value.downloadUrl || ''));
+      const expectedPrefix = `/${UPDATE_REPOSITORY}/`;
+      if (downloadUrl.protocol !== 'https:' || downloadUrl.hostname !== 'raw.githubusercontent.com' || !downloadUrl.pathname.startsWith(expectedPrefix) || !/\.html$/i.test(downloadUrl.pathname)) {
+        throw new Error('The update download location is not trusted.');
+      }
+      const notes = Array.isArray(value.notes) ? value.notes.map(note => String(note || '').trim()).filter(Boolean).slice(0,30) : [];
+      const sha256 = String(value.sha256 || '').trim().toLowerCase();
+      if (sha256 && !/^[a-f0-9]{64}$/.test(sha256)) throw new Error('The update checksum is invalid.');
+      const publishedAt = String(value.publishedAt || '').trim();
+      const fileSize = Number(value.fileSize || 0);
+      return {
+        version, downloadUrl:downloadUrl.href, notes, sha256, publishedAt,
+        fileSize:Number.isFinite(fileSize) && fileSize > 0 ? fileSize : 0,
+        filename:sanitizeUpdateFilename(value.filename)
+      };
+    }
+
+    function sanitizeUpdateFilename(value) {
+      const filename = String(value || 'Spec_Navigator.html').split(/[\\/]/).pop().replace(/[^a-zA-Z0-9._-]/g,'_').slice(0,100);
+      return /\.html$/i.test(filename) ? filename : 'Spec_Navigator.html';
+    }
+
+    function formatUpdateDate(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value || '');
+      return date.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+    }
+
+    async function checkForAppUpdate(options = {}) {
+      const force = Boolean(options.force);
+      if (updater.checkPromise && !force) return updater.checkPromise;
+      updater.status = 'checking'; updater.error = ''; updater.downloadError = ''; updater.downloaded = false;
+      renderUpdateDialog();
+      const promise = (async () => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(),UPDATE_TIMEOUT_MS);
+        try {
+          const response = await fetch(UPDATE_MANIFEST_URL,{signal:controller.signal,cache:'no-store',headers:{Accept:'application/json'}});
+          if (!response.ok) throw new Error(`Update service returned ${response.status}.`);
+          const info = normalizeUpdateManifest(await response.json());
+          updater.info = compareVersions(info.version,APP_VERSION) > 0 ? info : null;
+          updater.status = updater.info ? 'available' : 'current';
+          updater.checkedAt = Date.now();
+          el('versionUpdateDot').hidden = !updater.info;
+          return updater.info;
+        } catch (error) {
+          updater.info = null;
+          updater.status = 'error';
+          updater.error = error?.name === 'AbortError' ? 'The update check timed out.' : 'Could not reach the public update file.';
+          el('versionUpdateDot').hidden = true;
+          return null;
+        } finally {
+          clearTimeout(timer);
+          if (updater.checkPromise === promise) updater.checkPromise = null;
+          renderUpdateDialog();
+        }
+      })();
+      updater.checkPromise = promise;
+      return promise;
+    }
+
+    function initializeUpdater() {
+      el('versionButtonText').textContent = `v${APP_VERSION}`;
+      el('updateDialogSub').textContent = `Current version v${APP_VERSION}`;
+      renderUpdateDialog();
+      if (location.hash === '#qa') return;
+      setTimeout(async () => {
+        const info = await checkForAppUpdate();
+        if (info) openUpdateDialog('update',false);
+      },700);
+    }
+
+    async function openUpdateDialog(tab = 'changelog', checkIfNeeded = false) {
+      setUpdateDialogTab(tab);
+      if (typeof updateDialog.showModal === 'function') {
+        if (!updateDialog.open) updateDialog.showModal();
+      } else updateDialog.setAttribute('open','');
+      if (checkIfNeeded && updater.status === 'idle') await checkForAppUpdate();
+    }
+
+    function closeUpdateDialog() {
+      if (typeof updateDialog.close === 'function') updateDialog.close();
+      else updateDialog.removeAttribute('open');
+    }
+
+    function setUpdateDialogTab(tab) {
+      updater.activeTab = tab === 'update' ? 'update' : 'changelog';
+      const updateActive = updater.activeTab === 'update';
+      el('updateTab').classList.toggle('active',updateActive);
+      el('updateTab').setAttribute('aria-selected',String(updateActive));
+      el('changelogTab').classList.toggle('active',!updateActive);
+      el('changelogTab').setAttribute('aria-selected',String(!updateActive));
+      el('updatePane').hidden = !updateActive;
+      el('changelogPane').hidden = updateActive;
+      renderUpdateDialog();
+    }
+
+    function renderUpdateDialog() {
+      if (!el('updatePane')) return;
+      let updateHtml = '';
+      if (updater.status === 'available' && updater.info) {
+        const info = updater.info;
+        if (updater.downloaded) {
+          updateHtml = `<div class="update-state available"><div class="update-kicker">Download complete</div><div class="update-title">Spec Navigator v${escapeHtml(info.version)} is in your Downloads folder</div><div class="update-copy">Open the newly downloaded <strong>${escapeHtml(info.filename)}</strong>. Once it opens correctly, you can delete the older copy. The running file cannot replace itself while Chrome has it open.</div><div class="update-actions"><button class="btn primary" type="button" data-update-action="close">Done</button></div></div>`;
+        } else {
+          updateHtml = `<div class="update-state available"><div class="update-kicker">Update available</div><div class="update-title">A newer Spec Navigator is ready</div><div class="update-version-row"><span class="update-version-pill">v${escapeHtml(APP_VERSION)}</span><span aria-hidden="true">→</span><span class="update-version-pill new">v${escapeHtml(info.version)}</span></div>${info.publishedAt ? `<div class="update-copy">Published ${escapeHtml(formatUpdateDate(info.publishedAt))}</div>` : ''}${renderUpdateNotes(info.notes)}<div class="update-privacy">The update check reads one small public JSON file. The full packaged HTML is downloaded only after you click the button below; project files and usage data are never sent anywhere.</div>${updater.downloadError ? `<div class="update-progress" style="color:var(--red)">${escapeHtml(updater.downloadError)}</div>` : ''}${updater.downloading ? '<div class="update-progress">Downloading and verifying the complete application…</div>' : ''}<div class="update-actions"><button class="btn ghost" type="button" data-update-action="close" ${updater.downloading ? 'disabled' : ''}>Later</button><button id="downloadUpdateButton" class="btn primary" type="button" data-update-action="download" ${updater.downloading ? 'disabled' : ''}>${updater.downloading ? 'Downloading…' : `Download v${escapeHtml(info.version)}`}</button></div></div>`;
+        }
+      } else if (updater.status === 'checking') {
+        updateHtml = '<div class="update-state"><div class="update-kicker">Checking</div><div class="update-title">Looking for a newer version…</div><div class="update-copy">This is the app’s single update request for this session.</div></div>';
+      } else if (updater.status === 'error') {
+        updateHtml = `<div class="update-state error"><div class="update-kicker">Update check unavailable</div><div class="update-title">The app still works offline</div><div class="update-copy">${escapeHtml(updater.error || 'The public update file could not be reached.')} Your package and specification tools are unaffected.</div><div class="update-actions"><button class="btn" type="button" data-update-action="retry">Try again</button></div></div>`;
+      } else if (updater.status === 'current') {
+        updateHtml = `<div class="update-state"><div class="update-kicker">Up to date</div><div class="update-title">You have the latest version</div><div class="update-copy">Spec Navigator v${escapeHtml(APP_VERSION)} is current${updater.checkedAt ? ` as of ${escapeHtml(new Date(updater.checkedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}))}` : ''}.</div><div class="update-actions"><button class="btn" type="button" data-update-action="retry">Check again</button></div></div>`;
+      } else {
+        updateHtml = `<div class="update-state"><div class="update-kicker">Current version</div><div class="update-title">Spec Navigator v${escapeHtml(APP_VERSION)}</div><div class="update-copy">Open this tab after the automatic check finishes to see whether an update is available.</div></div>`;
+      }
+      el('updatePane').innerHTML = updateHtml;
+      el('changelogPane').innerHTML = renderChangelog();
+    }
+
+    function renderUpdateNotes(notes) {
+      if (!notes?.length) return '<div class="update-copy">This release includes product improvements and fixes.</div>';
+      return `<ul class="update-notes">${notes.map(note => `<li>${escapeHtml(note)}</li>`).join('')}</ul>`;
+    }
+
+    function renderChangelog() {
+      const entries = [...LOCAL_CHANGELOG];
+      if (updater.info && !entries.some(entry => entry.version === updater.info.version)) {
+        entries.unshift({version:updater.info.version,date:updater.info.publishedAt,type:'feature',title:'Available update',notes:updater.info.notes});
+      }
+      return `<div class="update-state"><div class="update-kicker">What’s new</div><div class="update-title">Spec Navigator changelog</div><div class="update-copy">Version history is built into the application, so it remains available offline.</div></div>${entries.map((entry,index) => `<article class="release-card"><div class="release-head"><span class="release-version">v${escapeHtml(entry.version)}</span><span class="release-label">${index === 0 ? 'Latest' : escapeHtml(entry.type || 'Release')}</span><span class="release-date">${escapeHtml(formatUpdateDate(entry.date))}</span></div><div class="release-notes"><strong>${escapeHtml(entry.title || 'Release')}</strong><ul>${(entry.notes || []).map(note => `<li>${escapeHtml(note)}</li>`).join('')}</ul></div></article>`).join('')}`;
+    }
+
+    async function handleUpdatePaneClick(event) {
+      const action = event.target.closest('[data-update-action]')?.dataset.updateAction;
+      if (action === 'close') closeUpdateDialog();
+      else if (action === 'retry') await checkForAppUpdate({force:true});
+      else if (action === 'download') await downloadAppUpdate();
+    }
+
+    async function sha256Hex(bytes) {
+      if (!globalThis.crypto?.subtle) return '';
+      const digest = await globalThis.crypto.subtle.digest('SHA-256',bytes);
+      return [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2,'0')).join('');
+    }
+
+    async function downloadAppUpdate() {
+      const info = updater.info;
+      if (!info || updater.downloading) return;
+      updater.downloading = true; updater.downloadError = ''; updater.downloaded = false; renderUpdateDialog();
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(),30000);
+        let response;
+        try { response = await fetch(info.downloadUrl,{signal:controller.signal,cache:'no-store'}); }
+        finally { clearTimeout(timer); }
+        if (!response.ok) throw new Error(`Download returned ${response.status}.`);
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        if (bytes.byteLength < 100000) throw new Error('The downloaded application is unexpectedly small.');
+        if (info.fileSize && bytes.byteLength !== info.fileSize) throw new Error('The downloaded application size does not match the published file.');
+        const prefix = new TextDecoder().decode(bytes.slice(0,512)).toLowerCase();
+        if (!prefix.includes('<!doctype html') && !prefix.includes('<html')) throw new Error('The downloaded file is not a packaged HTML application.');
+        if (info.sha256 && globalThis.crypto?.subtle) {
+          const actualHash = await sha256Hex(bytes);
+          if (actualHash !== info.sha256) throw new Error('The downloaded application did not pass its integrity check.');
+        }
+        downloadBlob(new Blob([bytes],{type:'text/html;charset=utf-8'}),info.filename);
+        updater.downloaded = true;
+      } catch (error) {
+        console.warn('Spec Navigator update download failed',error);
+        updater.downloadError = error?.name === 'AbortError' ? 'The update download timed out. Please try again.' : friendlyError(error);
+      } finally {
+        updater.downloading = false;
+        renderUpdateDialog();
+      }
+    }
+
+    async function chooseFolder(event) {
+      event?.stopPropagation();
+      if ('showDirectoryPicker' in window && window.isSecureContext) {
+        try {
+          const handle = await window.showDirectoryPicker({ mode: 'read' });
+          const gathered = [];
+          await readHandle(handle, '', gathered);
+          if (!gathered.length) return toast('That folder does not contain any readable files.');
+          await loadFiles(gathered, handle.name || 'Project folder');
+          return;
+        } catch (error) {
+          if (error?.name === 'AbortError') return;
+          console.warn('Dedicated folder picker unavailable; using browser fallback.', error);
+          toast('Using the browser fallback. Select the root folder, then use the “Select Folder” button.');
+        }
+      }
+      folderInput.click();
+    }
+
+    function toast(message, ms = 3200) {
+      const t = el('toast'); t.textContent = message; t.classList.add('show');
+      clearTimeout(toast.timer); toast.timer = setTimeout(() => t.classList.remove('show'), ms);
+    }
+
+    function setProgress(percent, label) {
+      const value = Math.max(0, Math.min(100, Math.round(percent)));
+      el('progressWrap').classList.add('visible');
+      el('progressBar').style.width = value + '%';
+      el('progressPercent').textContent = value + '%';
+      if (label) el('progressLabel').textContent = label;
+    }
+
+    function hideProgress(delay = 700) {
+      setTimeout(() => el('progressWrap').classList.remove('visible'), delay);
+    }
+
+    async function handleDrop(event) {
+      const items = [...(event.dataTransfer.items || [])];
+      const files = [...(event.dataTransfer.files || [])];
+      if (files.length === 1 && /\.zip$/i.test(files[0].name)) return loadZip(files[0]);
+      try {
+        const handles = await Promise.all(items.filter(i => i.kind === 'file' && i.getAsFileSystemHandle).map(i => i.getAsFileSystemHandle()));
+        if (handles.length && handles.some(Boolean)) {
+          const gathered = [];
+          for (const handle of handles.filter(Boolean)) await readHandle(handle, '', gathered);
+          return loadFiles(gathered, handles[0]?.name || 'Dropped package');
+        }
+      } catch (_) { /* Fall through to legacy folder traversal. */ }
+      const legacyEntries = items.map(i => i.webkitGetAsEntry?.()).filter(Boolean);
+      if (legacyEntries.length) {
+        const gathered = [];
+        for (const entry of legacyEntries) await readLegacyEntry(entry, '', gathered);
+        return loadFiles(gathered, legacyEntries[0]?.name || 'Dropped package');
+      }
+      if (files.length) return loadFiles(files, files[0].name || 'Dropped files');
+      toast('No readable files were found in that drop.');
+    }
+
+    async function readHandle(handle, parent, out) {
+      const path = parent ? `${parent}/${handle.name}` : handle.name;
+      if (handle.kind === 'file') {
+        const file = await handle.getFile();
+        out.push({ name: file.name, size: file.size, type: file.type, __relativePath: path, arrayBuffer: () => file.arrayBuffer() });
+      } else {
+        for await (const child of handle.values()) await readHandle(child, path, out);
+      }
+    }
+
+    async function readLegacyEntry(entry, parent, out) {
+      const path = parent ? `${parent}/${entry.name}` : entry.name;
+      if (entry.isFile) {
+        const file = await new Promise((resolve, reject) => entry.file(resolve, reject));
+        out.push({ name: file.name, size: file.size, type: file.type, __relativePath: path, arrayBuffer: () => file.arrayBuffer() });
+      } else if (entry.isDirectory) {
+        const reader = entry.createReader();
+        while (true) {
+          const batch = await new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+          if (!batch.length) break;
+          for (const child of batch) await readLegacyEntry(child, path, out);
+        }
+      }
+    }
+
+    async function loadZip(file) {
+      if (state.busy) return;
+      state.busy = true;
+      resetData();
+      workspace.classList.add('visible');
+      setProgress(4, 'Opening ZIP package…');
+      try {
+        const zip = await JSZip.loadAsync(file);
+        const zipEntries = Object.values(zip.files).filter(z => !z.dir && !isJunkPath(z.name));
+        state.entries = zipEntries.map(z => ({
+          name: basename(z.name), path: normalizePath(z.name), size: z._data?.uncompressedSize || 0,
+          getBytes: () => z.async('arraybuffer')
+        }));
+        state.packageName = file.name.replace(/\.zip$/i, '');
+        setProgress(20, `Indexed ${state.entries.length.toLocaleString()} files…`);
+        await analyzePackage();
+      } catch (error) {
+        failLoad(error, 'That ZIP could not be opened');
+      } finally { state.busy = false; }
+    }
+
+    async function loadFiles(files, packageName) {
+      if (state.busy) return;
+      state.busy = true;
+      resetData();
+      workspace.classList.add('visible');
+      setProgress(6, 'Reading project folder…');
+      try {
+        state.entries = files.filter(f => !isJunkPath(filePath(f))).map(f => ({
+          name: f.name, path: normalizePath(filePath(f)), size: f.size, getBytes: () => f.arrayBuffer()
+        }));
+        state.packageName = packageName;
+        setProgress(20, `Indexed ${state.entries.length.toLocaleString()} files…`);
+        await analyzePackage();
+      } catch (error) {
+        failLoad(error, 'That folder could not be read');
+      } finally { state.busy = false; }
+    }
+
+    function filePath(file) { return file.webkitRelativePath || file.__relativePath || file.name; }
+    function normalizePath(path) { return String(path || '').replace(/\\/g, '/').replace(/^\/+/, ''); }
+    function basename(path) { return normalizePath(path).split('/').pop() || ''; }
+    function isJunkPath(path) { return /(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db)(\/|$)/i.test(normalizePath(path)); }
+
+    async function analyzePackage() {
+      const workbookCandidates = state.entries.filter(e => /\.xlsx?$/i.test(e.name) && !/^~\$/i.test(e.name));
+      if (!workbookCandidates.length) throw new Error('No Excel workbook (.xlsx or .xls) was found.');
+      state.indexEntry = workbookCandidates.sort((a,b) => indexScore(b) - indexScore(a) || a.path.length - b.path.length)[0];
+      el('indexFileName').textContent = state.indexEntry.path;
+      setProgress(32, 'Reading the specification index…');
+      const bytes = await state.indexEntry.getBytes();
+      state.rows = parseWorkbook(bytes, state.indexEntry.name);
+      setProgress(54, `Found ${state.rows.length.toLocaleString()} index rows…`);
+      reconcile();
+      setProgress(90, 'Preparing division summary…');
+      renderAll();
+      setProgress(100, 'Package reconciliation complete');
+      hideProgress();
+      toast(`Ready: ${state.matches.length} specifications matched.`);
+      const completedPackage = state.packageName;
+      if (location.hash !== '#qa') setTimeout(() => {
+        if (!state.busy && state.packageName === completedPackage && getCompilationItems().length && !viewerDialog.open) openViewer();
+      }, 100);
+    }
+
+    function indexScore(entry) {
+      const s = entry.name.toLowerCase(); let score = 0;
+      if (s.includes('current project specifications index')) score += 100;
+      if (s.includes('specifications index')) score += 50;
+      if (s.includes('spec')) score += 10;
+      if (s.includes('index')) score += 10;
+      return score;
+    }
+
+    function parseWorkbook(arrayBuffer, name) {
+      const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: true, dense: false });
+      let best = null;
+      for (const sheetName of wb.SheetNames) {
+        const matrix = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, defval: '', raw: true });
+        for (let r = 0; r < Math.min(matrix.length, 30); r++) {
+          const headerMap = mapHeaders(matrix[r]);
+          if (headerMap.specNumber !== undefined && headerMap.specification !== undefined) {
+            const candidate = { matrix, rowIndex: r, headerMap, sheetName, score: Object.keys(headerMap).length };
+            if (!best || candidate.score > best.score) best = candidate;
+          }
+        }
+      }
+      if (!best) throw new Error(`${name} does not contain a header row with “Spec Number” and “Specification”.`);
+      const rows = [];
+      for (let i = best.rowIndex + 1; i < best.matrix.length; i++) {
+        const row = best.matrix[i];
+        const rawSpec = row[best.headerMap.specNumber];
+        if (rawSpec === '' || rawSpec === null || rawSpec === undefined) continue;
+        const parts = parseSpecCode(rawSpec);
+        if (!parts) {
+          rows.push({ rowNumber: i + 1, rawSpec: displayCell(rawSpec), specCode: '', suffix: '', specification: displayCell(row[best.headerMap.specification]), discipline: displayCell(row[best.headerMap.discipline]), rev: displayCell(row[best.headerMap.rev]), date: displayCell(row[best.headerMap.date]), invalid: true });
+          continue;
+        }
+        rows.push({ rowNumber: i + 1, rawSpec: displayCell(rawSpec), specCode: parts.code, suffix: parts.suffix, specification: displayCell(row[best.headerMap.specification]), discipline: displayCell(row[best.headerMap.discipline]), rev: displayCell(row[best.headerMap.rev]), date: displayCell(row[best.headerMap.date]), invalid: false });
+      }
+      if (!rows.length) throw new Error(`The detected header row in “${best.sheetName}” has no specification data beneath it.`);
+      return rows;
+    }
+
+    function mapHeaders(row) {
+      const out = {};
+      row.forEach((value, index) => {
+        const key = String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (key === 'specnumber' || key === 'specificationnumber' || key === 'specno') out.specNumber = index;
+        else if (key === 'specification' || key === 'description' || key === 'specificationdescription') out.specification = index;
+        else if (key === 'discipline') out.discipline = index;
+        else if (key === 'rev' || key === 'revision') out.rev = index;
+        else if (key === 'date' || key === 'revisiondate') out.date = index;
+      });
+      return out;
+    }
+
+    function displayCell(value) {
+      if (value === null || value === undefined) return '';
+      if (value instanceof Date && !Number.isNaN(value.valueOf())) return value.toISOString().slice(0,10);
+      return String(value).trim();
+    }
+
+    function parseSpecCode(value) {
+      const s = String(value || '').trim();
+      const match = s.match(/(?:^|[^0-9])(\d{2})[\s_.-]*(\d{2})[\s_.-]*(\d{2})[\s_.-]*(\d{2})(?=$|[^0-9])/);
+      if (!match) return null;
+      const suffixMatch = s.match(/\((\d{5})\)/);
+      return { code: `${match[1]}_${match[2]}_${match[3]}_${match[4]}`, suffix: suffixMatch ? suffixMatch[1] : '' };
+    }
+
+    function parseFilenameRevision(value) {
+      const matches = [...String(value || '').matchAll(/(?:^|[^a-z0-9])r(\d+)(?=$|[^a-z0-9])/gi)];
+      if (!matches.length) return null;
+      return Math.max(...matches.map(match => Number(match[1])));
+    }
+
+    function hasDatOrApp(value) {
+      return /dat|app/i.test(String(value || ''));
+    }
+
+    function getDivision(path, specCode = '') {
+      const match = normalizePath(path).match(/(?:^|\/)DIVISION\s+(\d{1,2})\s*(?:-\s*([^/]+))?(?:\/|$)/i);
+      const fallback = specCode ? Number(specCode.slice(0,2)) : 999;
+      if (!match) return { number: fallback, label: fallback === 999 ? 'Unassigned division' : `DIVISION ${String(fallback).padStart(2,'0')}` };
+      const number = Number(match[1]);
+      const name = (match[2] || '').trim();
+      return { number, label: `DIVISION ${String(number).padStart(2,'0')}${name ? ' - ' + name : ''}` };
+    }
+
+    function reconcile() {
+      const divisionPdfs = state.entries.filter(e => /\.pdf$/i.test(e.name) && /(?:^|\/)DIVISION\s+\d{1,2}(?:\s*-\s*[^/]+)?(?:\/|$)/i.test(e.path));
+      state.excludedFiles = [];
+      const candidates = divisionPdfs.map((e, id) => {
+        const parts = parseSpecCode(e.name);
+        const division = getDivision(e.path, parts?.code || '');
+        return { ...e, id, specCode: parts?.code || '', suffix: parts?.suffix || '', fileRevision: parseFilenameRevision(e.name), division, used: false };
+      });
+      const revisionCandidates = [];
+      for (const pdf of candidates) {
+        if (hasHyphenBelowDivision(pdf.path)) {
+          state.excludedFiles.push({ ...pdf, exclusionType:'Hyphenated package', exclusionReason:'Excluded because the filename or a nested folder below DIVISION contains a hyphen' });
+        } else if (hasDatOrApp(pdf.name)) {
+          state.excludedFiles.push({ ...pdf, exclusionType:'DAT/APP variant', exclusionReason:'Excluded because the filename contains DAT or APP' });
+        } else revisionCandidates.push(pdf);
+      }
+
+      const pdfs = [];
+      const revisionGroups = new Map();
+      for (const pdf of revisionCandidates) {
+        if (!pdf.specCode) { pdfs.push(pdf); continue; }
+        if (!revisionGroups.has(pdf.specCode)) revisionGroups.set(pdf.specCode, []);
+        revisionGroups.get(pdf.specCode).push(pdf);
+      }
+      for (const [specCode, group] of revisionGroups) {
+        if (group.length === 1) { pdfs.push(group[0]); continue; }
+        const highestRevision = Math.max(...group.map(pdf => pdf.fileRevision ?? -1));
+        const highest = group.filter(pdf => (pdf.fileRevision ?? -1) === highestRevision).sort((a,b) => a.path.localeCompare(b.path, undefined, {numeric:true,sensitivity:'base'}));
+        const winner = highest[0];
+        pdfs.push(winner);
+        for (const pdf of group) if (pdf !== winner) {
+          let reason;
+          if (highestRevision < 0) reason = `Duplicate ${specCode} has no r# marker; ${winner.name} was selected alphabetically`;
+          else if ((pdf.fileRevision ?? -1) < highestRevision) reason = `Superseded by ${winner.name}, the highest filename revision (r${highestRevision})`;
+          else reason = `Duplicate at the highest filename revision r${highestRevision}; ${winner.name} was selected alphabetically`;
+          state.excludedFiles.push({ ...pdf, exclusionType:'Superseded revision', exclusionReason:reason, selectedPath:winner.path, selectedRevision:winner.fileRevision });
+        }
+      }
+      pdfs.sort(sortPdfs);
+      const byCode = new Map();
+      for (const pdf of pdfs) if (pdf.specCode) {
+        if (!byCode.has(pdf.specCode)) byCode.set(pdf.specCode, []);
+        byCode.get(pdf.specCode).push(pdf);
+      }
+
+      state.matches = [];
+      state.missing = [];
+      for (const row of state.rows) {
+        if (row.invalid) {
+          state.missing.push({ ...row, reason: 'Spec number format was not recognized' });
+          continue;
+        }
+        let candidates = [...(byCode.get(row.specCode) || [])].filter(p => !p.used);
+        if (!candidates.length) {
+          state.missing.push({ ...row, reason: 'No matching PDF was found in a DIVISION folder' });
+          continue;
+        }
+        if (row.suffix) {
+          const sameSuffix = candidates.filter(p => p.suffix === row.suffix);
+          if (sameSuffix.length === 1) candidates = sameSuffix;
+          else if (sameSuffix.length > 1) candidates = sameSuffix;
+        }
+        if (candidates.length > 1) {
+          const expectedDivision = Number(row.specCode.slice(0,2));
+          const sameDivision = candidates.filter(p => p.division.number === expectedDivision);
+          if (sameDivision.length === 1) candidates = sameDivision;
+          else if (sameDivision.length > 1) candidates = sameDivision;
+        }
+        if (candidates.length > 1) {
+          state.missing.push({ ...row, reason: `Multiple candidate PDFs found (${candidates.length}); no file was selected automatically`, candidates: candidates.map(c => c.path) });
+          continue;
+        }
+        const pdf = candidates[0]; pdf.used = true;
+        state.matches.push({ ...row, pdf, division: pdf.division, source: 'index' });
+      }
+      state.extras = pdfs.filter(p => !p.used).sort(sortPdfs);
+      state.matches.sort(sortMatches);
+      state.divisions = groupMatches(getCompilationItems());
+    }
+
+    function hasHyphenBelowDivision(path) {
+      const segments = normalizePath(path).split('/');
+      const divisionIndex = segments.findIndex(segment => /^DIVISION\s+\d{1,2}(?:\s*-\s*.*)?$/i.test(segment));
+      if (divisionIndex < 0) return false;
+      return segments.slice(divisionIndex + 1).some(segment => segment.includes('-'));
+    }
+
+    function sortMatches(a,b) { return a.division.number - b.division.number || a.specCode.localeCompare(b.specCode, undefined, {numeric:true}) || a.specification.localeCompare(b.specification); }
+    function sortPdfs(a,b) { return a.division.number - b.division.number || a.specCode.localeCompare(b.specCode, undefined, {numeric:true}) || a.path.localeCompare(b.path); }
+
+    function folderOnlyItem(pdf) {
+      return {
+        source: 'folder', pdf, division: pdf.division, specCode: pdf.specCode, suffix: pdf.suffix,
+        rawSpec: pdf.specCode, specification: filenameDescription(pdf.name), discipline: '', rev: pdf.fileRevision === null ? '' : `r${pdf.fileRevision}`, date: ''
+      };
+    }
+
+    function fileRevisionLabel(item) {
+      const revision = item?.pdf?.fileRevision ?? item?.fileRevision;
+      return revision === null || revision === undefined ? 'no r#' : `r${revision}`;
+    }
+
+    function filenameDescription(name) {
+      let value = String(name || '').replace(/\.pdf$/i, '');
+      value = value.replace(/(?:^|[^0-9])(?:\d{2}[\s_.]*){3}\d{2}(?=$|[^0-9])/, ' ');
+      value = value.replace(/\(\d{5}\)/g, ' ').replace(/[_().]+/g, ' ').replace(/\s+/g, ' ').trim();
+      return value || String(name || 'Folder-only specification').replace(/\.pdf$/i, '');
+    }
+
+    function getCompilationItems() {
+      return [...state.matches, ...state.extras.map(folderOnlyItem)].sort(sortMatches);
+    }
+
+    function groupMatches(matches) {
+      const map = new Map();
+      for (const match of matches) {
+        const key = `${String(match.division.number).padStart(3,'0')}|${match.division.label}`;
+        if (!map.has(key)) map.set(key, { ...match.division, matches: [] });
+        map.get(key).matches.push(match);
+      }
+      return map;
+    }
+
+    function renderAll() {
+      el('statIndex').textContent = state.rows.length.toLocaleString();
+      el('statMatched').textContent = state.matches.length.toLocaleString();
+      el('statMissing').textContent = state.missing.length.toLocaleString();
+      el('statExtra').textContent = state.extras.length.toLocaleString();
+      el('statSkipped').textContent = state.excludedFiles.length.toLocaleString();
+      el('missingBadge').textContent = state.missing.length.toLocaleString();
+      el('extraBadge').textContent = state.extras.length.toLocaleString();
+      el('skippedBadge').textContent = state.excludedFiles.length.toLocaleString();
+      const compilationItems = getCompilationItems();
+      const exclusionCounts = state.excludedFiles.reduce((counts,item) => { counts[item.exclusionType]=(counts[item.exclusionType]||0)+1; return counts; }, {});
+      el('packageStatus').textContent = `${compilationItems.length.toLocaleString()} PDFs are available in the Spec Viewer and optional PDF export: ${state.matches.length.toLocaleString()} matched to the XLSX and ${state.extras.length.toLocaleString()} included from the folder only. ${state.excludedFiles.length.toLocaleString()} excluded (${exclusionCounts['Hyphenated package']||0} hyphen, ${exclusionCounts['DAT/APP variant']||0} DAT/APP, ${exclusionCounts['Superseded revision']||0} older/duplicate revision).`;
+      const divisionValues = [...state.divisions.values()];
+      el('divisionSummary').textContent = divisionValues.length ? `${divisionValues.length} included · ${divisionValues.map(d => String(d.number).padStart(2,'0')).join(', ')}` : 'No included divisions';
+      el('exceptionsButton').disabled = !(state.missing.length || state.extras.length || state.excludedFiles.length);
+      el('exportManifestButton').disabled = !(state.rows.length || compilationItems.length || state.excludedFiles.length);
+      el('buildButton').disabled = !compilationItems.length;
+      el('openViewerButton').disabled = !compilationItems.length;
+      el('matchSubtitle').textContent = `${compilationItems.length.toLocaleString()} PDFs will be included: ${state.matches.length.toLocaleString()} index matched and ${state.extras.length.toLocaleString()} folder only.`;
+      if (state.packageName) {
+        el('projectTitle').value = `${state.packageName} Project Specifications`;
+        el('outputName').value = sanitizeFilename(`${state.packageName}_Project_Specifications.pdf`);
+      }
+      renderMatches();
+      renderExceptions();
+    }
+
+    function renderMatches() {
+      const q = el('matchSearch').value.trim().toLowerCase();
+      const compilationItems = getCompilationItems();
+      const filtered = compilationItems.filter(m => !q || [m.specCode,m.rawSpec,m.specification,m.discipline,m.rev,m.date,m.pdf.path,m.division.label,m.source === 'index' ? 'index matched' : 'folder only'].join(' ').toLowerCase().includes(q));
+      const groups = groupMatches(filtered);
+      if (!filtered.length) { el('divisionList').innerHTML = `<div class="empty">${compilationItems.length ? 'No included specifications fit that search.' : 'No eligible PDFs were found.'}</div>`; return; }
+      el('divisionList').innerHTML = [...groups.values()].map((division, i) => `
+        <details class="division" ${i < 2 ? 'open' : ''}>
+          <summary><span>${escapeHtml(division.label)}</span><span class="division-count">${division.matches.length} spec${division.matches.length === 1 ? '' : 's'}</span></summary>
+          <table class="spec-table"><thead><tr><th>Spec number</th><th>Specification</th><th>Status</th><th>Discipline</th><th>Rev</th><th>Date</th></tr></thead><tbody>
+          ${division.matches.map(m => `<tr><td><div class="mono">${escapeHtml(displaySpec(m))}</div><div class="path" title="${escapeHtml(m.pdf.path)}">${escapeHtml(m.pdf.path)}</div></td><td>${escapeHtml(m.specification || '—')}</td><td><span class="status-pill ${m.source === 'index' ? 'matched' : 'extra'}">${m.source === 'index' ? 'Index matched' : 'Folder only · included'} · file ${escapeHtml(fileRevisionLabel(m))}</span></td><td>${escapeHtml(m.discipline || '—')}</td><td>${escapeHtml(m.rev || '—')}</td><td>${escapeHtml(m.date || '—')}</td></tr>`).join('')}
+          </tbody></table>
+        </details>`).join('');
+    }
+
+    function displaySpec(item) { return item.specCode ? item.specCode + (item.suffix ? ` (${item.suffix})` : '') : 'No spec number'; }
+
+    function openViewer() {
+      const items = getCompilationItems();
+      if (state.busy) return toast('Please wait for the current task to finish.');
+      if (!items.length) return toast('Load a package with eligible specifications first.');
+      viewer.items = items;
+      viewer.selectedIndex = Math.min(Math.max(0, viewer.selectedIndex), items.length - 1);
+      viewerDialog.classList.remove('sidebar-collapsed');
+      el('viewerNavToggle').setAttribute('aria-expanded','true');
+      el('viewerSearch').value = '';
+      buildViewerNav();
+      buildViewerScopeOptions();
+      if (typeof viewerDialog.showModal === 'function') viewerDialog.showModal(); else viewerDialog.setAttribute('open','');
+      requestAnimationFrame(() => selectViewerSpec(viewer.selectedIndex));
+    }
+
+    function closeViewerDialog() {
+      if (typeof viewerDialog.close === 'function') viewerDialog.close();
+      else { viewerDialog.removeAttribute('open'); closeViewer(); }
+    }
+
+    function reviewViewerPackage() {
+      closeViewerDialog();
+      requestAnimationFrame(() => workspace.scrollIntoView({behavior:'smooth',block:'start'}));
+    }
+
+    function closeViewer() {
+      viewerDialog.classList.remove('sidebar-open','sidebar-collapsed');
+      closeViewerScopePanel();
+      closeViewerSearchSummary();
+      viewer.loadToken++;
+      destroyViewerDocument();
+      el('viewerPages').replaceChildren();
+      el('viewerLoading').hidden = false;
+      el('viewerLoading').innerHTML = '<div><strong>Viewer closed</strong>The package remains loaded.</div>';
+    }
+
+    function viewerSearchText(item) {
+      return [item.specCode,item.rawSpec,item.specification,item.discipline,item.rev,item.date,item.pdf.path,item.division.label,fileRevisionLabel(item),item.source === 'index' ? 'index matched' : 'folder only'].join(' ').toLowerCase();
+    }
+
+    function viewerDivisionScopeKey(item) {
+      return `${item.division.number}|${item.division.label}`;
+    }
+
+    function viewerSectionScopeKey(item) {
+      const parts = String(item.specCode || '').split('_');
+      return parts.length >= 2 ? `${parts[0]}_${parts[1]}` : '__unnumbered__';
+    }
+
+    function viewerDisciplineScopeKey(item) {
+      return String(item.discipline || '').trim().toLowerCase() || '__unspecified__';
+    }
+
+    function viewerSourceScopeKey(item) {
+      return item.source === 'index' ? 'index' : 'folder';
+    }
+
+    function viewerScopeKeyForGroup(group,item) {
+      return ({ divisions:viewerDivisionScopeKey, sections:viewerSectionScopeKey, disciplines:viewerDisciplineScopeKey, sources:viewerSourceScopeKey })[group](item);
+    }
+
+    function collectViewerScopeOptions(keyForItem,labelForItem,sorter) {
+      const options = new Map();
+      for (const item of viewer.items) {
+        const key = keyForItem(item);
+        if (!options.has(key)) options.set(key,{key,label:labelForItem(item),count:0});
+        options.get(key).count++;
+      }
+      return [...options.values()].sort(sorter || ((a,b) => a.label.localeCompare(b.label,undefined,{numeric:true,sensitivity:'base'})));
+    }
+
+    function buildViewerScopeOptions() {
+      viewer.scopeOptions = {
+        divisions:collectViewerScopeOptions(viewerDivisionScopeKey,item => item.division.label,(a,b) => Number(a.key.split('|')[0]) - Number(b.key.split('|')[0]) || a.label.localeCompare(b.label)),
+        sections:collectViewerScopeOptions(viewerSectionScopeKey,item => viewerSectionScopeKey(item) === '__unnumbered__' ? 'Unnumbered' : viewerSectionScopeKey(item)),
+        disciplines:collectViewerScopeOptions(viewerDisciplineScopeKey,item => viewerDisciplineScopeKey(item) === '__unspecified__' ? 'Unspecified / folder only' : String(item.discipline).trim()),
+        sources:collectViewerScopeOptions(viewerSourceScopeKey,item => item.source === 'index' ? 'Index matched' : 'Folder only')
+      };
+      for (const group of Object.keys(viewer.searchScope)) {
+        const valid = new Set(viewer.scopeOptions[group].map(option => option.key));
+        for (const key of viewer.searchScope[group]) if (!valid.has(key)) viewer.searchScope[group].delete(key);
+      }
+      renderViewerScopeControls();
+      updateViewerScopeUi();
+    }
+
+    function renderViewerScopeControls() {
+      const destinations = { divisions:'viewerScopeDivisions', sections:'viewerScopeSections', disciplines:'viewerScopeDisciplines', sources:'viewerScopeSources' };
+      for (const [group,id] of Object.entries(destinations)) {
+        const selected = viewer.searchScope[group];
+        const destination = el(id);
+        const previousScrollTop = destination.scrollTop;
+        const options = getViewerScopeFacetOptions(group);
+        destination.innerHTML = options.map(option => `<label class="viewer-scope-option" title="${escapeHtml(option.label)} · ${option.count.toLocaleString()} matching spec${option.count === 1 ? '' : 's'}"><input type="checkbox" data-viewer-scope-group="${group}" data-viewer-scope-key="${escapeHtml(option.key)}" ${selected.has(option.key) ? 'checked' : ''}><span class="viewer-scope-option-name">${escapeHtml(option.label)}</span><span class="viewer-scope-option-count">${option.count.toLocaleString()}</span></label>`).join('') || '<div class="empty">No compatible options</div>';
+        destination.scrollTop = previousScrollTop;
+      }
+      el('viewerScopeModeAnd').checked = viewer.scopeMode === 'and';
+      el('viewerScopeModeOr').checked = viewer.scopeMode === 'or';
+    }
+
+    function viewerScopeFilterCount() {
+      return Object.values(viewer.searchScope).reduce((total,selection) => total + selection.size,0);
+    }
+
+    function viewerItemMatchesScopeGroup(item,group) {
+      const selection = viewer.searchScope[group];
+      return !selection.size || selection.has(viewerScopeKeyForGroup(group,item));
+    }
+
+    function viewerItemInSearchScope(item) {
+      const scope = viewer.searchScope;
+      const activeGroups = Object.keys(scope).filter(group => scope[group].size);
+      if (!activeGroups.length) return true;
+      return viewer.scopeMode === 'or'
+        ? activeGroups.some(group => viewerItemMatchesScopeGroup(item,group))
+        : activeGroups.every(group => viewerItemMatchesScopeGroup(item,group));
+    }
+
+    function getViewerScopeFacetOptions(group) {
+      const selected = viewer.searchScope[group];
+      if (viewer.scopeMode === 'or' || !viewerScopeFilterCount()) return viewer.scopeOptions[group];
+      return viewer.scopeOptions[group].map(option => {
+        const count = viewer.items.reduce((total,item) => {
+          if (viewerScopeKeyForGroup(group,item) !== option.key) return total;
+          const compatible = Object.keys(viewer.searchScope).every(otherGroup => otherGroup === group || viewerItemMatchesScopeGroup(item,otherGroup));
+          return total + (compatible ? 1 : 0);
+        },0);
+        return {...option,count};
+      }).filter(option => option.count > 0 || selected.has(option.key));
+    }
+
+    function getViewerScopedEntries() {
+      return viewer.items.map((item,index) => ({item,index})).filter(entry => viewerItemInSearchScope(entry.item));
+    }
+
+    function viewerScopeDetailedLabel() {
+      const categoryNames = { divisions:'divisions', sections:'sections', disciplines:'disciplines', sources:'sources' };
+      const parts = [];
+      for (const group of Object.keys(categoryNames)) {
+        const selected = viewer.searchScope[group];
+        if (!selected.size) continue;
+        const labels = viewer.scopeOptions[group].filter(option => selected.has(option.key)).map(option => option.label);
+        parts.push(labels.length <= 2 ? labels.join(' or ') : `${labels.length} ${categoryNames[group]}`);
+      }
+      return parts.length ? `${viewer.scopeMode.toUpperCase()} · ${parts.join(viewer.scopeMode === 'or' ? ' or ' : ' + ')}` : 'All included specifications';
+    }
+
+    function updateViewerScopeUi() {
+      const filterCount = viewerScopeFilterCount();
+      const scopedCount = getViewerScopedEntries().length;
+      const button = el('viewerScopeButton');
+      button.textContent = filterCount ? `Scope ${viewer.scopeMode.toUpperCase()}: ${scopedCount}/${viewer.items.length}` : 'Scope: All';
+      button.classList.toggle('active',filterCount > 0);
+      button.title = filterCount ? `Search scope: ${viewerScopeDetailedLabel()}` : 'Limit text search by division, upper-level section, discipline, or source';
+      el('viewerScopeSummary').textContent = filterCount
+        ? `${scopedCount.toLocaleString()} of ${viewer.items.length.toLocaleString()} specs eligible · ${viewerScopeDetailedLabel()}`
+        : `All ${viewer.items.length.toLocaleString()} included specifications are eligible · ${viewer.scopeMode.toUpperCase()} mode`;
+      el('viewerScopeClear').disabled = !filterCount || viewer.searchingAll;
+    }
+
+    function toggleViewerScopePanel() {
+      const panel = el('viewerScopePanel');
+      panel.hidden = !panel.hidden;
+      el('viewerScopeButton').setAttribute('aria-expanded',String(!panel.hidden));
+      if (!panel.hidden) panel.querySelector('input')?.focus();
+    }
+
+    function closeViewerScopePanel() {
+      el('viewerScopePanel').hidden = true;
+      el('viewerScopeButton').setAttribute('aria-expanded','false');
+    }
+
+    function changeViewerScopeFilter(event) {
+      const modeInput = event.target.closest('[data-viewer-scope-mode]');
+      if (modeInput && !viewer.searchingAll) {
+        viewer.scopeMode = modeInput.value === 'or' ? 'or' : 'and';
+        clearViewerTextSearch(false);
+        renderViewerScopeControls();
+        updateViewerScopeUi();
+        const scopedCount = getViewerScopedEntries().length;
+        el('viewerFindStatus').textContent = `${viewer.scopeMode.toUpperCase()} scope · ${scopedCount.toLocaleString()} spec${scopedCount === 1 ? '' : 's'}`;
+        return;
+      }
+      const input = event.target.closest('[data-viewer-scope-group]');
+      if (!input || viewer.searchingAll) return;
+      const selection = viewer.searchScope[input.dataset.viewerScopeGroup];
+      if (input.checked) selection.add(input.dataset.viewerScopeKey); else selection.delete(input.dataset.viewerScopeKey);
+      clearViewerTextSearch(false);
+      renderViewerScopeControls();
+      updateViewerScopeUi();
+      const scopedCount = getViewerScopedEntries().length;
+      el('viewerFindStatus').textContent = `${scopedCount.toLocaleString()} spec${scopedCount === 1 ? '' : 's'} in scope`;
+    }
+
+    function clearViewerScopeFilters() {
+      if (viewer.searchingAll) return;
+      for (const selection of Object.values(viewer.searchScope)) selection.clear();
+      renderViewerScopeControls();
+      clearViewerTextSearch(false);
+      updateViewerScopeUi();
+      el('viewerFindStatus').textContent = 'Scope cleared';
+    }
+
+    function buildViewerNav() {
+      const query = el('viewerSearch').value.trim().toLowerCase();
+      const filtered = viewer.items.map((item,index) => ({item,index})).filter(entry => !query || viewerSearchText(entry.item).includes(query));
+      const rows = [];
+      let top = 0;
+      let lastDivision = '';
+      for (const entry of filtered) {
+        const divisionKey = `${entry.item.division.number}|${entry.item.division.label}`;
+        if (divisionKey !== lastDivision) {
+          rows.push({ type:'division', label:entry.item.division.label, top, height:32 });
+          top += 32;
+          lastDivision = divisionKey;
+        }
+        rows.push({ type:'spec', item:entry.item, itemIndex:entry.index, top, height:72 });
+        top += 72;
+      }
+      viewer.navRows = rows;
+      viewer.navTotalHeight = top;
+      el('viewerSpecSpacer').style.height = `${Math.max(top, 1)}px`;
+      el('viewerListSummary').textContent = `${filtered.length.toLocaleString()} of ${viewer.items.length.toLocaleString()} included specs · same filtered manifest as PDF export`;
+      renderViewerNav();
+    }
+
+    function scheduleViewerNavRender() {
+      if (viewer.navRaf) return;
+      viewer.navRaf = requestAnimationFrame(() => { viewer.navRaf = 0; renderViewerNav(); });
+    }
+
+    function renderViewerNav() {
+      const list = el('viewerSpecList');
+      const spacer = el('viewerSpecSpacer');
+      const scrollTop = list.scrollTop;
+      const viewportHeight = list.clientHeight || 720;
+      const min = Math.max(0, scrollTop - 300);
+      const max = scrollTop + viewportHeight + 300;
+      const visible = viewer.navRows.filter(row => row.top + row.height >= min && row.top <= max);
+      spacer.innerHTML = visible.map(row => row.type === 'division'
+        ? `<div class="viewer-nav-row viewer-division-row" style="top:${row.top}px" title="${escapeHtml(row.label)}">${escapeHtml(row.label)}</div>`
+        : `<button class="viewer-nav-row viewer-spec-row ${row.itemIndex === viewer.selectedIndex ? 'active' : ''}" style="top:${row.top}px" type="button" data-viewer-index="${row.itemIndex}" title="${escapeHtml(row.item.pdf.path)}"><div class="viewer-spec-code">${escapeHtml(displaySpec(row.item))}</div><div class="viewer-spec-name">${escapeHtml(row.item.specification || row.item.pdf.name)}</div><div class="viewer-spec-meta">${escapeHtml(row.item.source === 'index' ? 'Index matched' : 'Folder only')} · ${escapeHtml(fileRevisionLabel(row.item))} · ${escapeHtml(row.item.discipline || row.item.division.label)}</div></button>`).join('');
+      if (!visible.length && !viewer.navRows.length) spacer.innerHTML = '<div class="empty">No included specifications fit that search.</div>';
+    }
+
+    function keepViewerSelectionVisible() {
+      const row = viewer.navRows.find(value => value.type === 'spec' && value.itemIndex === viewer.selectedIndex);
+      if (!row) return;
+      const list = el('viewerSpecList');
+      if (row.top < list.scrollTop) list.scrollTop = row.top;
+      else if (row.top + row.height > list.scrollTop + list.clientHeight) list.scrollTop = Math.max(0, row.top + row.height - list.clientHeight);
+      renderViewerNav();
+    }
+
+    function ensurePdfJsWorker() {
+      if (!window.pdfjsLib) throw new Error('The built-in PDF viewer could not start.');
+      if (!viewer.workerUrl) {
+        const source = el('pdfWorkerSource').textContent;
+        viewer.workerUrl = URL.createObjectURL(new Blob([source], {type:'text/javascript'}));
+      }
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = viewer.workerUrl;
+    }
+
+    async function selectViewerSpec(index, options = {}) {
+      if (!Number.isInteger(index) || index < 0 || index >= viewer.items.length) return;
+      const preserveSearch = Boolean(options.preserveSearch);
+      const targetPage = Number.isInteger(options.targetPage) ? options.targetPage : 0;
+      const token = ++viewer.loadToken;
+      destroyViewerDocument();
+      viewer.selectedIndex = index;
+      viewer.currentPage = 0;
+      if (!preserveSearch) clearViewerTextSearch(true);
+      const item = viewer.items[index];
+      renderViewerNav();
+      keepViewerSelectionVisible();
+      if (window.matchMedia?.('(max-width: 820px)').matches) viewerDialog.classList.remove('sidebar-open');
+      el('viewerCurrentSpec').textContent = displaySpec(item);
+      el('viewerCurrentTitle').textContent = `${item.specification || item.pdf.name} · Spec ${index + 1} of ${viewer.items.length}`;
+      el('viewerDivision').textContent = item.division.label;
+      el('viewerRevision').textContent = item.source === 'index' ? `Index rev ${item.rev || '—'} · file ${fileRevisionLabel(item)}` : `Folder only · file ${fileRevisionLabel(item)}`;
+      el('viewerPath').textContent = item.pdf.path;
+      el('viewerPath').title = item.pdf.path;
+      el('viewerPrevSpec').disabled = index === 0;
+      el('viewerNextSpec').disabled = index === viewer.items.length - 1;
+      el('viewerPageInput').value = '1';
+      el('viewerPageInput').max = '1';
+      el('viewerPageCount').textContent = '0';
+      el('viewerPages').replaceChildren();
+      const loading = el('viewerLoading');
+      loading.hidden = false;
+      loading.innerHTML = `<div><strong>Opening ${escapeHtml(displaySpec(item))}</strong>Only this source PDF is being loaded.</div>`;
+      try {
+        ensurePdfJsWorker();
+        const bytes = await item.pdf.getBytes();
+        if (token !== viewer.loadToken) return;
+        const sourceBytes = bytes instanceof Uint8Array ? bytes.slice() : new Uint8Array(bytes);
+        const loadingTask = window.pdfjsLib.getDocument({ data:sourceBytes, isEvalSupported:false, useSystemFonts:true });
+        viewer.loadingTask = loadingTask;
+        const pdfDoc = await loadingTask.promise;
+        if (token !== viewer.loadToken) { loadingTask.destroy(); return; }
+        viewer.pdfDoc = pdfDoc;
+        const firstPage = await pdfDoc.getPage(1);
+        if (token !== viewer.loadToken) return;
+        const firstViewport = firstPage.getViewport({scale:1});
+        viewer.pageDims = Array.from({length:pdfDoc.numPages}, () => ({width:firstViewport.width,height:firstViewport.height}));
+        viewer.pageSlots = [];
+        const fragment = document.createDocumentFragment();
+        for (let pageIndex = 0; pageIndex < pdfDoc.numPages; pageIndex++) {
+          const slot = document.createElement('div');
+          slot.className = 'viewer-page-slot';
+          slot.dataset.page = String(pageIndex + 1);
+          slot.setAttribute('aria-label', `Page ${pageIndex + 1}`);
+          viewer.pageSlots.push(slot);
+          fragment.appendChild(slot);
+        }
+        el('viewerPages').replaceChildren(fragment);
+        el('viewerPageInput').max = String(pdfDoc.numPages);
+        el('viewerPageCount').textContent = pdfDoc.numPages.toLocaleString();
+        loading.hidden = true;
+        viewer.zoom = 1;
+        el('viewerFitWidth').textContent = 'Fit · 100%';
+        el('viewerViewport').scrollTop = 0;
+        relayoutViewerPages(false);
+        if (targetPage > 0 && viewer.pageLayouts[targetPage]) {
+          el('viewerViewport').scrollTop = viewer.pageLayouts[targetPage].top;
+          scheduleViewerPageWindow();
+        }
+      } catch (error) {
+        if (token !== viewer.loadToken) return;
+        console.error(error);
+        loading.hidden = false;
+        loading.innerHTML = `<div><strong>This specification could not be displayed</strong>${escapeHtml(friendlyError(error))}. You can choose another spec from the contents.</div>`;
+      }
+    }
+
+    function destroyViewerDocument() {
+      if (viewer.zoomSettleTimer) clearTimeout(viewer.zoomSettleTimer);
+      viewer.zoomSettleTimer = 0;
+      viewer.wheelZooming = false;
+      if (viewer.searchingAll) {
+        viewer.textSearchToken++;
+        if (viewer.searchLoadingTask?.destroy) Promise.resolve(viewer.searchLoadingTask.destroy()).catch(() => {});
+        viewer.searchLoadingTask = null;
+        setViewerSearchBusy(false);
+      }
+      for (const index of [...viewer.renderTasks.keys()]) evictViewerPage(index);
+      viewer.rendered.clear();
+      viewer.renderRoles.clear();
+      const loadingTask = viewer.loadingTask;
+      viewer.loadingTask = null;
+      viewer.pdfDoc = null;
+      if (loadingTask?.destroy) Promise.resolve(loadingTask.destroy()).catch(() => {});
+      viewer.pageDims = [];
+      viewer.pageLayouts = [];
+      viewer.pageSlots = [];
+      viewer.pageText.clear();
+      viewer.textSearchToken++;
+    }
+
+    function relayoutViewerPages(preserveCurrent = true, evictCanvases = true) {
+      if (!viewer.pdfDoc || !viewer.pageSlots.length) return;
+      const anchorPage = preserveCurrent ? findViewerCurrentPage() : 0;
+      const viewport = el('viewerViewport');
+      const availableWidth = Math.max(260, (viewport.clientWidth || 1000) - 52);
+      const layouts = [];
+      let widestPage = 0;
+      let top = 24;
+      for (let index = 0; index < viewer.pageDims.length; index++) {
+        const dimensions = viewer.pageDims[index];
+        const scale = Math.max(.1, (availableWidth / Math.max(1, dimensions.width)) * viewer.zoom);
+        const width = dimensions.width * scale;
+        const height = dimensions.height * scale;
+        widestPage = Math.max(widestPage,width);
+        layouts.push({top,width,height,scale});
+        const slot = viewer.pageSlots[index];
+        slot.style.top = `${top}px`;
+        slot.style.width = `${width}px`;
+        slot.style.height = `${height}px`;
+        top += height + 22;
+      }
+      viewer.pageLayouts = layouts;
+      const pages = el('viewerPages');
+      pages.style.width = `${Math.max(widestPage + 52, viewport.clientWidth || 1000)}px`;
+      pages.style.height = `${Math.max(top + 2, viewport.clientHeight || 1)}px`;
+      if (evictCanvases === 'preserve') {
+        for (const controller of viewer.renderTasks.values()) controller.cancel();
+        viewer.renderTasks.clear();
+        viewer.rendered.clear();
+        viewer.renderRoles.clear();
+      } else if (evictCanvases) {
+        for (const index of [...viewer.rendered, ...viewer.renderTasks.keys()]) evictViewerPage(index);
+      }
+      if (preserveCurrent && layouts[anchorPage]) viewport.scrollTop = layouts[anchorPage].top;
+      scheduleViewerPageWindow();
+    }
+
+    function findViewerCurrentPage() {
+      if (!viewer.pageLayouts.length) return 0;
+      const viewport = el('viewerViewport');
+      const position = viewport.scrollTop + Math.max(50, viewport.clientHeight * .24);
+      let low = 0;
+      let high = viewer.pageLayouts.length - 1;
+      while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        const layout = viewer.pageLayouts[middle];
+        if (layout.top + layout.height < position) low = middle + 1; else high = middle;
+      }
+      return low;
+    }
+
+    function scheduleViewerPageWindow() {
+      if (viewer.viewportRaf) return;
+      viewer.viewportRaf = requestAnimationFrame(() => { viewer.viewportRaf = 0; updateViewerPageWindow(); });
+    }
+
+    function updateViewerPageWindow() {
+      if (!viewer.pdfDoc || !viewer.pageLayouts.length) return;
+      const current = findViewerCurrentPage();
+      viewer.currentPage = current;
+      el('viewerPageInput').value = String(current + 1);
+      if (viewer.wheelZooming) return;
+      const first = Math.max(0, current - VIEWER_RENDER_RADIUS);
+      const last = Math.min(viewer.pageLayouts.length - 1, current + VIEWER_RENDER_RADIUS);
+      for (let index = first; index <= last; index++) renderViewerPage(index, index === current ? 'focused' : 'buffer');
+      for (const index of new Set([...viewer.rendered, ...viewer.renderTasks.keys()])) if (index < first || index > last) evictViewerPage(index);
+      viewer.pageSlots.forEach((slot,index) => { if ((index < first || index > last) && slot.querySelector('canvas')) evictViewerPage(index); });
+    }
+
+    async function renderViewerPage(index, role = 'buffer') {
+      if (!viewer.pdfDoc) return;
+      const existingRole = viewer.renderRoles.get(index);
+      if (viewer.rendered.has(index) && (existingRole === 'focused' || role === 'buffer')) return;
+      const existingTask = viewer.renderTasks.get(index);
+      if (existingTask) {
+        if (existingTask.role === 'focused' || role === 'buffer') return;
+        existingTask.cancel();
+      }
+      const token = viewer.loadToken;
+      const controller = { role, cancelled:false, task:null, canvas:null, installed:false, cancel() { this.cancelled = true; try { this.task?.cancel(); } catch (_) {} } };
+      viewer.renderTasks.set(index, controller);
+      try {
+        const page = await viewer.pdfDoc.getPage(index + 1);
+        if (controller.cancelled || token !== viewer.loadToken) return;
+        const baseViewport = page.getViewport({scale:1});
+        const known = viewer.pageDims[index];
+        if (!known || Math.abs(known.width - baseViewport.width) > .5 || Math.abs(known.height - baseViewport.height) > .5) {
+          viewer.pageDims[index] = {width:baseViewport.width,height:baseViewport.height};
+          relayoutViewerPages(true, false);
+        }
+        const layout = viewer.pageLayouts[index];
+        const minimumRatio = role === 'focused' ? VIEWER_FOCUSED_PIXEL_RATIO : VIEWER_BUFFER_PIXEL_RATIO;
+        const maxPixels = role === 'focused' ? VIEWER_FOCUSED_MAX_CANVAS_PIXELS : VIEWER_BUFFER_MAX_CANVAS_PIXELS;
+        const initialRatio = Math.max(minimumRatio, window.devicePixelRatio || 1);
+        const estimatedPixels = layout.width * layout.height * initialRatio * initialRatio;
+        const ratio = estimatedPixels > maxPixels ? initialRatio * Math.sqrt(maxPixels / estimatedPixels) : initialRatio;
+        const renderViewport = page.getViewport({scale:layout.scale * ratio});
+        const canvas = document.createElement('canvas');
+        controller.canvas = canvas;
+        canvas.width = Math.max(1, Math.floor(renderViewport.width));
+        canvas.height = Math.max(1, Math.floor(renderViewport.height));
+        canvas.setAttribute('aria-label', `Rendered page ${index + 1}`);
+        const context = canvas.getContext('2d', {alpha:false});
+        if (!context) throw new Error('Canvas rendering is unavailable in this browser');
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        const slot = viewer.pageSlots[index];
+        controller.task = page.render({canvasContext:context,viewport:renderViewport,intent:'display'});
+        await controller.task.promise;
+        if (controller.cancelled || token !== viewer.loadToken) return;
+        slot.replaceChildren(canvas);
+        slot.classList.add('rendered');
+        controller.installed = true;
+        viewer.rendered.add(index);
+        viewer.renderRoles.set(index, role);
+        await refreshViewerHighlights(index, page);
+      } catch (error) {
+        if (!controller.cancelled && error?.name !== 'RenderingCancelledException') {
+          console.warn(`Could not render viewer page ${index + 1}`, error);
+          const slot = viewer.pageSlots[index];
+          if (slot && !slot.querySelector('canvas')) { slot.classList.remove('rendered'); slot.textContent = `Page ${index + 1} could not be rendered`; }
+        }
+      } finally {
+        if (!controller.installed && controller.canvas) { controller.canvas.width = 1; controller.canvas.height = 1; }
+        if (viewer.renderTasks.get(index) === controller) viewer.renderTasks.delete(index);
+      }
+    }
+
+    function evictViewerPage(index) {
+      const controller = viewer.renderTasks.get(index);
+      controller?.cancel();
+      viewer.renderTasks.delete(index);
+      viewer.rendered.delete(index);
+      viewer.renderRoles.delete(index);
+      const slot = viewer.pageSlots[index];
+      if (!slot) return;
+      const canvas = slot.querySelector('canvas');
+      if (canvas) { canvas.width = 1; canvas.height = 1; }
+      slot.replaceChildren();
+      slot.classList.remove('rendered');
+    }
+
+    function handleViewerWheelZoom(event) {
+      if (!viewerDialog.open || !viewer.pdfDoc || !(event.ctrlKey || event.metaKey) || !event.deltaY) return;
+      event.preventDefault();
+      const slot = event.target instanceof Element ? event.target.closest('.viewer-page-slot') : null;
+      if (!slot || !el('viewerPages').contains(slot)) return;
+      const pageIndex = viewer.pageSlots.indexOf(slot);
+      if (pageIndex < 0) return;
+      const rect = slot.getBoundingClientRect();
+      const viewportRect = el('viewerViewport').getBoundingClientRect();
+      const layout = viewer.pageLayouts[pageIndex];
+      const width = rect.width || layout?.width || 1;
+      const height = rect.height || layout?.height || 1;
+      const pointerX = Number.isFinite(event.clientX) && event.clientX ? event.clientX : viewportRect.left + (el('viewerViewport').clientWidth || width) / 2;
+      const pointerY = Number.isFinite(event.clientY) && event.clientY ? event.clientY : viewportRect.top + (el('viewerViewport').clientHeight || height) / 2;
+      const anchor = {
+        pageIndex,
+        xRatio:Math.max(0,Math.min(1,(pointerX - rect.left) / width)),
+        yRatio:Math.max(0,Math.min(1,(pointerY - rect.top) / height)),
+        clientX:pointerX,
+        clientY:pointerY
+      };
+      setViewerZoom(viewer.zoom + (event.deltaY < 0 ? VIEWER_ZOOM_WHEEL_STEP : -VIEWER_ZOOM_WHEEL_STEP),anchor);
+    }
+
+    function setViewerZoom(value, pointerAnchor = null) {
+      if (!viewer.pdfDoc) return;
+      const nextZoom = Math.round(Math.max(.5, Math.min(3, value)) * 20) / 20;
+      if (Math.abs(nextZoom - viewer.zoom) < .001) return;
+      viewer.zoom = nextZoom;
+      el('viewerFitWidth').textContent = `Fit · ${Math.round(viewer.zoom * 100)}%`;
+      if (!pointerAnchor || !viewer.pageSlots[pointerAnchor.pageIndex]) {
+        finishViewerWheelZoom(false);
+        relayoutViewerPages(true, 'preserve');
+        return;
+      }
+      beginViewerWheelZoom();
+      relayoutViewerPages(false,false);
+      const viewport = el('viewerViewport');
+      const slot = viewer.pageSlots[pointerAnchor.pageIndex];
+      const rect = slot.getBoundingClientRect();
+      const anchoredX = rect.left + pointerAnchor.xRatio * rect.width;
+      const anchoredY = rect.top + pointerAnchor.yRatio * rect.height;
+      viewport.scrollLeft += anchoredX - pointerAnchor.clientX;
+      viewport.scrollTop += anchoredY - pointerAnchor.clientY;
+      scheduleViewerPageWindow();
+      scheduleViewerWheelZoomRender();
+    }
+
+    function beginViewerWheelZoom() {
+      viewer.wheelZooming = true;
+      for (const controller of viewer.renderTasks.values()) controller.cancel();
+      viewer.renderTasks.clear();
+      const current = findViewerCurrentPage();
+      viewer.pageSlots.forEach((slot,index) => {
+        if (!slot.querySelector('canvas')) return;
+        viewer.rendered.add(index);
+        viewer.renderRoles.set(index,index === current ? 'focused' : 'buffer');
+      });
+    }
+
+    function scheduleViewerWheelZoomRender() {
+      if (viewer.zoomSettleTimer) clearTimeout(viewer.zoomSettleTimer);
+      viewer.zoomSettleTimer = setTimeout(() => finishViewerWheelZoom(true),VIEWER_ZOOM_SETTLE_MS);
+    }
+
+    function finishViewerWheelZoom(refresh = true) {
+      if (viewer.zoomSettleTimer) clearTimeout(viewer.zoomSettleTimer);
+      viewer.zoomSettleTimer = 0;
+      const wasZooming = viewer.wheelZooming;
+      viewer.wheelZooming = false;
+      if (!refresh || !wasZooming || !viewer.pdfDoc) return;
+      for (const controller of viewer.renderTasks.values()) controller.cancel();
+      viewer.renderTasks.clear();
+      viewer.rendered.clear();
+      viewer.renderRoles.clear();
+      scheduleViewerPageWindow();
+    }
+
+    function jumpToViewerPage() {
+      if (!viewer.pageLayouts.length) return;
+      const requested = Math.max(1, Math.min(viewer.pageLayouts.length, Number(el('viewerPageInput').value) || 1));
+      el('viewerPageInput').value = String(requested);
+      el('viewerViewport').scrollTop = viewer.pageLayouts[requested - 1].top;
+      scheduleViewerPageWindow();
+    }
+
+    async function refreshViewerHighlights(pageIndex, pageProxy = null) {
+      const slot = viewer.pageSlots[pageIndex];
+      if (!slot) return;
+      slot.querySelector('.viewer-highlight-layer')?.remove();
+      const pageMatches = viewer.textMatches.filter(match => match.specIndex === viewer.selectedIndex && match.pageIndex === pageIndex);
+      if (!pageMatches.length) return;
+      try {
+        const page = pageProxy || await viewer.pdfDoc.getPage(pageIndex + 1);
+        const content = await page.getTextContent({disableNormalization:false});
+        const pageData = buildViewerPageTextData(content.items);
+        const layout = viewer.pageLayouts[pageIndex];
+        if (!layout) return;
+        const cssViewport = page.getViewport({scale:layout.scale});
+        const layer = document.createElement('div');
+        layer.className = 'viewer-highlight-layer';
+        layer.setAttribute('aria-label', `${pageMatches.length} highlighted occurrence${pageMatches.length === 1 ? '' : 's'}`);
+        for (const match of pageMatches) {
+          const matchIndex = viewer.textMatches.indexOf(match);
+          const active = matchIndex === viewer.textMatchIndex;
+          for (const fragment of fragmentsForViewerOccurrence(pageData.entries, match.start, match.end)) {
+            const item = fragment.item;
+            if (!item?.transform) continue;
+            const tx = window.pdfjsLib.Util.transform(cssViewport.transform, item.transform);
+            const fontHeight = Math.max(5, Math.hypot(tx[2], tx[3]));
+            const fullWidth = Math.max(4, (Number(item.width) || fontHeight * Math.max(1, String(item.str || '').length) * .5) * layout.scale);
+            const charCount = Math.max(1, String(item.str || '').length);
+            const left = tx[4] + fullWidth * (fragment.start / charCount);
+            const width = Math.max(4, fullWidth * ((fragment.end - fragment.start) / charCount));
+            const marker = document.createElement('div');
+            marker.className = `viewer-highlight${active ? ' active' : ''}`;
+            marker.dataset.searchResultIndex = String(matchIndex);
+            marker.style.left = `${Math.max(0,left - 1)}px`;
+            marker.style.top = `${Math.max(0,tx[5] - fontHeight * 1.02)}px`;
+            marker.style.width = `${Math.min(width + 2, Math.max(4,layout.width - left))}px`;
+            marker.style.height = `${fontHeight * 1.16}px`;
+            layer.appendChild(marker);
+          }
+        }
+        if (!layer.children.length) return;
+        slot.appendChild(layer);
+        const activeMarker = layer.querySelector('.viewer-highlight.active');
+        const scrollKey = `${viewer.selectedIndex}:${pageIndex}:${viewer.textMatchIndex}`;
+        if (activeMarker && viewer.highlightScrollKey !== scrollKey) {
+          viewer.highlightScrollKey = scrollKey;
+          const target = layout.top + (parseFloat(activeMarker.style.top) || 0) - el('viewerViewport').clientHeight * .28;
+          const viewport = el('viewerViewport');
+          if (typeof viewport.scrollTo === 'function') viewport.scrollTo({top:Math.max(0,target),behavior:'smooth'});
+          else viewport.scrollTop = Math.max(0,target);
+        }
+      } catch (error) {
+        console.warn('Could not draw search highlights', error);
+      }
+    }
+
+    function buildViewerPageTextData(items) {
+      const entries = [];
+      let text = '';
+      let previous = null;
+      for (const item of items || []) {
+        const value = String(item?.str || '');
+        if (!value) continue;
+        if (text) text += ' ';
+        const start = text.length;
+        text += value;
+        entries.push({item,start,end:text.length});
+        previous = item;
+      }
+      return {text,lowerText:text.toLowerCase(),entries};
+    }
+
+    function parseViewerSearchTerms(value) {
+      const seen = new Set();
+      return String(value || '').split(';').map(term => term.trim().replace(/\s+/g,' ')).filter(term => {
+        const key = term.toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key); return true;
+      }).map(term => ({display:term,lower:term.toLowerCase()}));
+    }
+
+    function findViewerOccurrences(pageData, terms, specIndex, pageIndex) {
+      const matches = [];
+      terms.forEach((term, termIndex) => {
+        let from = 0;
+        while (from <= pageData.lowerText.length - term.lower.length) {
+          const start = pageData.lowerText.indexOf(term.lower, from);
+          if (start < 0) break;
+          const end = start + term.lower.length;
+          matches.push({specIndex,pageIndex,term:term.display,termIndex,start,end,snippet:extractViewerSentence(pageData.text,start,end)});
+          from = start + Math.max(1,term.lower.length);
+        }
+      });
+      return matches.sort((a,b) => a.start-b.start || a.end-b.end || a.termIndex-b.termIndex);
+    }
+
+    function fragmentsForViewerOccurrence(entries, start, end) {
+      const fragments = [];
+      for (const entry of entries) {
+        const overlapStart = Math.max(start,entry.start);
+        const overlapEnd = Math.min(end,entry.end);
+        if (overlapStart < overlapEnd) fragments.push({item:entry.item,start:overlapStart-entry.start,end:overlapEnd-entry.start});
+      }
+      return fragments;
+    }
+
+    function extractViewerSentence(text, matchStart, matchEnd) {
+      let start = 0;
+      const before = text.slice(0,matchStart);
+      const boundaryPattern = /(?:[.!?](?:\s+|$)|\n{2,})/g;
+      for (const boundary of before.matchAll(boundaryPattern)) start = boundary.index + boundary[0].length;
+      let end = text.length;
+      const after = text.slice(matchEnd);
+      const nextBoundary = after.match(/(?:[.!?](?:\s+|$)|\n{2,})/);
+      if (nextBoundary) end = matchEnd + nextBoundary.index + nextBoundary[0].length;
+      const maxLength = 560;
+      let clippedStart = start;
+      let clippedEnd = end;
+      if (clippedEnd - clippedStart > maxLength) {
+        clippedStart = Math.max(start,matchStart - 240);
+        clippedEnd = Math.min(end,matchEnd + 300);
+      }
+      const leading = clippedStart > start;
+      const trailing = clippedEnd < end;
+      const raw = text.slice(clippedStart,clippedEnd);
+      const leftTrim = raw.length - raw.trimStart().length;
+      const clean = raw.trim();
+      const relativeStart = Math.max(0,matchStart-clippedStart-leftTrim);
+      return {text:`${leading ? '…' : ''}${clean}${trailing ? '…' : ''}`,matchStart:relativeStart+(leading?1:0),matchEnd:relativeStart+(leading?1:0)+(matchEnd-matchStart)};
+    }
+
+    function changeViewerSearchScope() {
+      clearViewerTextSearch(false);
+      const allSpecs = el('viewerSearchAll').checked;
+      el('viewerDocSearch').placeholder = allSpecs ? 'Search all specs… Use ; for multiple terms' : 'Find text… Use ; for multiple terms';
+      el('viewerDocSearch').setAttribute('aria-label', allSpecs ? 'Find text across all included specifications' : 'Find text in the current specification');
+      el('viewerFind').textContent = allSpecs ? 'Search all' : 'Find';
+      const scopedCount = getViewerScopedEntries().length;
+      el('viewerFindStatus').textContent = allSpecs ? `${scopedCount.toLocaleString()} specs in scope` : '—';
+    }
+
+    function setViewerSearchBusy(busy) {
+      viewer.searchingAll = busy;
+      el('viewerFind').textContent = busy ? 'Cancel' : el('viewerSearchAll').checked ? 'Search all' : 'Find';
+      el('viewerSearchAll').disabled = busy;
+      el('viewerDocSearch').disabled = busy;
+      el('viewerScopeButton').disabled = busy;
+      el('viewerScopeClear').disabled = busy || !viewerScopeFilterCount();
+      el('viewerScopePanel').querySelectorAll('input').forEach(input => { input.disabled = busy; });
+    }
+
+    function clearViewerTextSearch(clearInput = false) {
+      viewer.textSearchToken++;
+      viewer.pageText.clear();
+      viewer.textMatches = [];
+      viewer.textMatchIndex = -1;
+      viewer.lastTextQuery = '';
+      viewer.searchTerms = [];
+      viewer.lastSearchScopeLabel = '';
+      viewer.lastSearchSpecCount = 0;
+      viewer.activeHighlight = null;
+      viewer.highlightScrollKey = '';
+      document.querySelectorAll('.viewer-highlight-layer').forEach(layer => layer.remove());
+      closeViewerSearchSummary();
+      if (viewer.searchLoadingTask?.destroy) Promise.resolve(viewer.searchLoadingTask.destroy()).catch(() => {});
+      viewer.searchLoadingTask = null;
+      setViewerSearchBusy(false);
+      if (clearInput) el('viewerDocSearch').value = '';
+      el('viewerFindStatus').textContent = '—';
+      el('viewerFindPrev').disabled = true;
+      el('viewerFindNext').disabled = true;
+      el('viewerSearchSummary').disabled = true;
+      el('viewerSearchSummary').textContent = 'Summary';
+    }
+
+    async function searchViewerDocument() {
+      if (viewer.searchingAll) {
+        clearViewerTextSearch(false);
+        el('viewerFindStatus').textContent = 'Cancelled';
+        return;
+      }
+      if (!viewer.pdfDoc) return;
+      const terms = parseViewerSearchTerms(el('viewerDocSearch').value);
+      if (!terms.length) return clearViewerTextSearch(false);
+      const queryKey = terms.map(term => term.lower).join(';');
+      if (queryKey === viewer.lastTextQuery && viewer.textMatches.length) return stepViewerTextMatch(1);
+      if (el('viewerSearchAll').checked) return searchAllViewerDocuments(terms,queryKey);
+      const currentItem = viewer.items[viewer.selectedIndex];
+      if (!currentItem || !viewerItemInSearchScope(currentItem)) {
+        clearViewerTextSearch(false);
+        el('viewerFindStatus').textContent = 'Current spec is outside scope';
+        return;
+      }
+      const token = ++viewer.textSearchToken;
+      viewer.lastTextQuery = queryKey;
+      viewer.searchTerms = terms;
+      viewer.lastSearchScopeLabel = `${viewerScopeDetailedLabel()} · current spec ${displaySpec(currentItem)}`;
+      viewer.lastSearchSpecCount = 1;
+      viewer.textMatches = [];
+      viewer.textMatchIndex = -1;
+      viewer.activeHighlight = null;
+      viewer.highlightScrollKey = '';
+      document.querySelectorAll('.viewer-highlight-layer').forEach(layer => layer.remove());
+      el('viewerSearchSummary').disabled = true;
+      el('viewerSearchSummary').textContent = 'Summary';
+      el('viewerFindPrev').disabled = true;
+      el('viewerFindNext').disabled = true;
+      el('viewerFindStatus').textContent = '0 matches · starting';
+      try {
+        for (let pageIndex = 0; pageIndex < viewer.pdfDoc.numPages; pageIndex++) {
+          if (token !== viewer.textSearchToken) return;
+          let pageData = viewer.pageText.get(pageIndex);
+          if (!pageData) {
+            pageData = await getViewerPageText(viewer.pdfDoc,pageIndex);
+            viewer.pageText.set(pageIndex,pageData);
+          }
+          viewer.textMatches.push(...findViewerOccurrences(pageData,terms,viewer.selectedIndex,pageIndex));
+          el('viewerFindStatus').textContent = `${viewer.textMatches.length.toLocaleString()} matches · ${pageIndex + 1}/${viewer.pdfDoc.numPages} pages`;
+          if (pageIndex % 6 === 5) await nextFrame();
+        }
+        if (token !== viewer.textSearchToken) return;
+        finishViewerTextSearch(false);
+      } catch (error) {
+        failViewerTextSearch(error, token);
+      }
+    }
+
+    async function searchAllViewerDocuments(terms,queryKey) {
+      const token = ++viewer.textSearchToken;
+      const scopedEntries = getViewerScopedEntries();
+      viewer.lastTextQuery = queryKey;
+      viewer.searchTerms = terms;
+      viewer.lastSearchScopeLabel = viewerScopeDetailedLabel();
+      viewer.lastSearchSpecCount = scopedEntries.length;
+      viewer.textMatches = [];
+      viewer.textMatchIndex = -1;
+      viewer.pageText.clear();
+      viewer.activeHighlight = null;
+      viewer.highlightScrollKey = '';
+      document.querySelectorAll('.viewer-highlight-layer').forEach(layer => layer.remove());
+      el('viewerSearchSummary').disabled = true;
+      el('viewerSearchSummary').textContent = 'Summary';
+      el('viewerFindPrev').disabled = true;
+      el('viewerFindNext').disabled = true;
+      if (!scopedEntries.length) {
+        el('viewerFindStatus').textContent = 'No specs in scope';
+        return;
+      }
+      setViewerSearchBusy(true);
+      try {
+        for (let scopedIndex = 0; scopedIndex < scopedEntries.length; scopedIndex++) {
+          if (token !== viewer.textSearchToken) return;
+          const {item,index:specIndex} = scopedEntries[scopedIndex];
+          el('viewerFindStatus').textContent = `${viewer.textMatches.length.toLocaleString()} matches · ${scopedIndex + 1}/${scopedEntries.length} scoped specs`;
+          let pdfDoc = null;
+          let temporaryTask = null;
+          try {
+            if (specIndex === viewer.selectedIndex && viewer.pdfDoc) {
+              pdfDoc = viewer.pdfDoc;
+            } else {
+              const bytes = await item.pdf.getBytes();
+              if (token !== viewer.textSearchToken) return;
+              const sourceBytes = bytes instanceof Uint8Array ? bytes.slice() : new Uint8Array(bytes);
+              temporaryTask = window.pdfjsLib.getDocument({data:sourceBytes,isEvalSupported:false,useSystemFonts:true});
+              viewer.searchLoadingTask = temporaryTask;
+              pdfDoc = await temporaryTask.promise;
+            }
+            for (let pageIndex = 0; pageIndex < pdfDoc.numPages; pageIndex++) {
+              if (token !== viewer.textSearchToken) return;
+              const pageData = await getViewerPageText(pdfDoc,pageIndex);
+              viewer.textMatches.push(...findViewerOccurrences(pageData,terms,specIndex,pageIndex));
+              el('viewerFindStatus').textContent = `${viewer.textMatches.length.toLocaleString()} matches · ${scopedIndex + 1}/${scopedEntries.length} scoped specs`;
+              if (pageIndex % 12 === 11) await nextFrame();
+            }
+          } catch (error) {
+            console.warn(`Skipped text search for ${item.pdf.path}`, error);
+          } finally {
+            if (temporaryTask?.destroy) await Promise.resolve(temporaryTask.destroy()).catch(() => {});
+            if (viewer.searchLoadingTask === temporaryTask) viewer.searchLoadingTask = null;
+          }
+          await nextFrame();
+        }
+        if (token !== viewer.textSearchToken) return;
+        finishViewerTextSearch(true);
+      } catch (error) {
+        failViewerTextSearch(error, token);
+      } finally {
+        if (token === viewer.textSearchToken) setViewerSearchBusy(false);
+      }
+    }
+
+    async function getViewerPageText(pdfDoc, pageIndex) {
+      const page = await pdfDoc.getPage(pageIndex + 1);
+      const content = await page.getTextContent({disableNormalization:false});
+      return buildViewerPageTextData(content.items);
+    }
+
+    function finishViewerTextSearch(allSpecs) {
+      setViewerSearchBusy(false);
+      if (!viewer.textMatches.length) {
+        el('viewerFindStatus').textContent = 'No matches';
+        el('viewerSearchSummary').disabled = true;
+        return;
+      }
+      const atOrAfterCurrent = viewer.textMatches.findIndex(match => match.specIndex > viewer.selectedIndex || match.specIndex === viewer.selectedIndex && match.pageIndex >= viewer.currentPage);
+      viewer.textMatchIndex = atOrAfterCurrent >= 0 ? atOrAfterCurrent : 0;
+      el('viewerFindPrev').disabled = false;
+      el('viewerFindNext').disabled = false;
+      el('viewerSearchSummary').disabled = false;
+      el('viewerSearchSummary').textContent = `Summary (${viewer.textMatches.length.toLocaleString()})`;
+      if (allSpecs) {
+        const specCount = new Set(viewer.textMatches.map(match => match.specIndex)).size;
+        toast(`${viewer.textMatches.length.toLocaleString()} occurrence${viewer.textMatches.length === 1 ? '' : 's'} across ${specCount.toLocaleString()} of ${viewer.lastSearchSpecCount.toLocaleString()} searched specs.`, 4300);
+      }
+      goToViewerTextMatch();
+    }
+
+    function failViewerTextSearch(error, token) {
+      if (token !== viewer.textSearchToken) return;
+      setViewerSearchBusy(false);
+      console.warn('Text search could not be completed', error);
+      el('viewerFindStatus').textContent = 'Search failed';
+    }
+
+    function stepViewerTextMatch(direction) {
+      if (!viewer.textMatches.length) return searchViewerDocument();
+      viewer.textMatchIndex = (viewer.textMatchIndex + direction + viewer.textMatches.length) % viewer.textMatches.length;
+      goToViewerTextMatch();
+    }
+
+    async function goToViewerTextMatch() {
+      const match = viewer.textMatches[viewer.textMatchIndex];
+      if (!match) return;
+      const previous = viewer.activeHighlight;
+      viewer.activeHighlight = match;
+      viewer.highlightScrollKey = '';
+      if (match.specIndex !== viewer.selectedIndex) {
+        await selectViewerSpec(match.specIndex, {preserveSearch:true,targetPage:match.pageIndex});
+      } else {
+        const layout = viewer.pageLayouts[match.pageIndex];
+        if (layout) {
+          el('viewerViewport').scrollTop = layout.top;
+          scheduleViewerPageWindow();
+        }
+        if (previous && previous.pageIndex !== match.pageIndex && viewer.rendered.has(previous.pageIndex)) await refreshViewerHighlights(previous.pageIndex);
+        const page = viewer.pdfDoc ? await viewer.pdfDoc.getPage(match.pageIndex + 1) : null;
+        if (page) await refreshViewerHighlights(match.pageIndex, page);
+        for (const pageIndex of viewer.rendered) if (pageIndex !== match.pageIndex && (!previous || pageIndex !== previous.pageIndex)) await refreshViewerHighlights(pageIndex);
+      }
+      const item = viewer.items[match.specIndex];
+      el('viewerFindStatus').textContent = `${viewer.textMatchIndex + 1} of ${viewer.textMatches.length} · ${match.term}`;
+      if (!el('viewerSearchSummaryModal').hidden) renderViewerSearchSummary();
+    }
+
+    function openViewerSearchSummary() {
+      if (!viewer.textMatches.length) return;
+      renderViewerSearchSummary();
+      el('viewerSearchSummaryModal').hidden = false;
+      el('viewerSearchSummaryClose').focus();
+    }
+
+    function closeViewerSearchSummary() {
+      el('viewerSearchSummaryModal').hidden = true;
+    }
+
+    function renderViewerSearchSummary() {
+      const body = el('viewerSearchSummaryBody');
+      const groups = new Map();
+      viewer.textMatches.forEach((match,index) => {
+        if (!groups.has(match.specIndex)) groups.set(match.specIndex,[]);
+        groups.get(match.specIndex).push({match,index});
+      });
+      const termLabel = viewer.searchTerms.map(term => term.display).join(' · ');
+      el('viewerSearchSummarySub').textContent = `${viewer.textMatches.length.toLocaleString()} occurrence${viewer.textMatches.length === 1 ? '' : 's'} for ${termLabel || 'this search'}, grouped by specification. Scope: ${viewer.lastSearchScopeLabel || 'All included specifications'}.`;
+      body.innerHTML = [...groups.entries()].map(([specIndex,results]) => {
+        const item = viewer.items[specIndex];
+        return `<section class="search-summary-spec"><div class="search-summary-spec-head">${escapeHtml(displaySpec(item))} · ${escapeHtml(item.specification || item.pdf.name)}<small>${results.length} match${results.length === 1 ? '' : 'es'}</small></div>${results.map(({match,index}) => `<button class="search-result-row ${index === viewer.textMatchIndex ? 'active' : ''}" type="button" data-search-result-index="${index}"><div class="search-result-number">#${index + 1}<br>Page ${match.pageIndex + 1}</div><div><div class="search-result-meta">${escapeHtml(match.term)} · occurrence ${index + 1} of ${viewer.textMatches.length}</div><div class="search-result-context">${highlightViewerSummaryTerm(match.snippet)}</div></div></button>`).join('')}</section>`;
+      }).join('');
+      requestAnimationFrame(() => {
+        const active = body.querySelector('.search-result-row.active');
+        if (typeof active?.scrollIntoView === 'function') active.scrollIntoView({block:'center'});
+      });
+    }
+
+    function highlightViewerSummaryTerm(snippet) {
+      const source = String(snippet?.text || '');
+      const start = Math.max(0,Math.min(source.length,Number(snippet?.matchStart) || 0));
+      const end = Math.max(start,Math.min(source.length,Number(snippet?.matchEnd) || start));
+      if (end <= start) return escapeHtml(source);
+      return `${escapeHtml(source.slice(0,start))}<mark>${escapeHtml(source.slice(start,end))}</mark>${escapeHtml(source.slice(end))}`;
+    }
+
+    function openExceptions() {
+      setExceptionTab(state.missing.length ? 'missing' : state.extras.length ? 'extra' : 'skipped');
+      if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open','');
+    }
+
+    function setExceptionTab(tab) {
+      state.exceptionTab = tab;
+      for (const [id, value] of [['missingTab','missing'],['extraTab','extra'],['skippedTab','skipped']]) {
+        const active = tab === value;
+        el(id).classList.toggle('active', active);
+        el(id).setAttribute('aria-selected', String(active));
+      }
+      el('exceptionSearch').value = '';
+      renderExceptions();
+    }
+
+    function renderExceptions() {
+      const q = el('exceptionSearch').value.trim().toLowerCase();
+      const source = state.exceptionTab === 'missing' ? state.missing : state.exceptionTab === 'extra' ? state.extras : state.excludedFiles;
+      const filtered = source.filter(item => !q || JSON.stringify(item).toLowerCase().includes(q));
+      if (!filtered.length) { el('exceptionBody').innerHTML = `<div class="empty">${source.length ? 'No items fit that filter.' : 'Nothing to report in this tab.'}</div>`; return; }
+      if (state.exceptionTab === 'missing') {
+        el('exceptionBody').innerHTML = filtered.map(item => `<div class="exception-row"><div><div class="mono">${escapeHtml(item.rawSpec || item.specCode || 'Unrecognized')}</div><div>Excel row ${item.rowNumber}</div></div><div><strong>${escapeHtml(item.specification || 'No description')}</strong><div class="reason">${escapeHtml(item.reason)}</div>${item.candidates?.length ? `<div class="exception-path">${item.candidates.map(escapeHtml).join('<br>')}</div>` : ''}</div><span class="status-pill">Needs review</span></div>`).join('');
+      } else if (state.exceptionTab === 'extra') {
+        el('exceptionBody').innerHTML = filtered.map(item => `<div class="exception-row"><div><div class="mono">${escapeHtml(item.specCode || 'No code found')}</div><div>${escapeHtml(item.division.label)}</div></div><div><strong>${escapeHtml(item.name)}</strong><div class="exception-path">${escapeHtml(item.path)}</div></div><span class="status-pill extra">Included · ${escapeHtml(fileRevisionLabel(item))}</span></div>`).join('');
+      } else {
+        el('exceptionBody').innerHTML = filtered.map(item => `<div class="exception-row"><div><div class="mono">${escapeHtml(item.specCode || 'No code found')}</div><div>${escapeHtml(item.division.label)} · ${escapeHtml(fileRevisionLabel(item))}</div></div><div><strong>${escapeHtml(item.name)}</strong><div class="reason">${escapeHtml(item.exclusionReason)}</div><div class="exception-path">${escapeHtml(item.path)}</div></div><span class="status-pill">Excluded · ${escapeHtml(item.exclusionType)}</span></div>`).join('');
+      }
+    }
+
+    function exportExceptionCsv() {
+      const rows = state.exceptionTab === 'missing'
+        ? [['Spec Number','Specification','Discipline','Rev','Date','Excel Row','Status','Candidates'], ...state.missing.map(i => [i.rawSpec,i.specification,i.discipline,i.rev,i.date,i.rowNumber,'Index row not found in eligible PDFs: ' + i.reason,(i.candidates||[]).join(' | ')])]
+        : state.exceptionTab === 'extra'
+          ? [['Spec Number','Filename Revision','Division','Filename','Path','Status'], ...state.extras.map(i => [i.specCode,fileRevisionLabel(i),i.division.label,i.name,i.path,'Included in PDF - folder only'])]
+          : [['Spec Number','Filename Revision','Division','Filename','Path','Exclusion Type','Reason','Selected Replacement'], ...state.excludedFiles.map(i => [i.specCode,fileRevisionLabel(i),i.division.label,i.name,i.path,i.exclusionType,i.exclusionReason,i.selectedPath||''])];
+      const csv = rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+      const filename = state.exceptionTab === 'missing' ? 'Index_Not_Found.csv' : state.exceptionTab === 'extra' ? 'Folder_Only_Included.csv' : 'Rule_Excluded_PDFs.csv';
+      downloadBlob(new Blob(['\ufeff', csv], {type:'text/csv;charset=utf-8'}), filename);
+    }
+
+    function exportManifestCsv() {
+      const header = ['Status','Included in PDF','Spec Number','Filename Revision','Specification / Filename','Division','Discipline','Index Rev','Date','Path','Reason','Selected Replacement'];
+      const rows = [header];
+      for (const item of state.matches) rows.push(['Index matched','Yes',displaySpec(item),fileRevisionLabel(item),item.specification,item.division.label,item.discipline,item.rev,item.date,item.pdf.path,'Matched to XLSX index','']);
+      for (const pdf of state.extras) { const item=folderOnlyItem(pdf); rows.push(['Folder only','Yes',displaySpec(item),fileRevisionLabel(pdf),item.specification,item.division.label,'','','',pdf.path,'Eligible PDF not matched to XLSX','']); }
+      for (const item of state.missing) rows.push(['Index not found','No',item.rawSpec,'',item.specification,'',item.discipline,item.rev,item.date,'',item.reason,'']);
+      for (const pdf of state.excludedFiles) rows.push([pdf.exclusionType,'No',pdf.specCode,fileRevisionLabel(pdf),pdf.name,pdf.division.label,'','','',pdf.path,pdf.exclusionReason,pdf.selectedPath||'']);
+      const csv = rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+      downloadBlob(new Blob(['\ufeff', csv], {type:'text/csv;charset=utf-8'}), 'Spec_Navigator_Full_Audit.csv');
+    }
+
+    function csvCell(value) { const s = String(value ?? ''); return `"${s.replace(/"/g,'""')}"`; }
+
+    async function buildPdf() {
+      const compilationItems = getCompilationItems();
+      if (state.busy || !compilationItems.length) return;
+      state.busy = true;
+      el('buildButton').disabled = true;
+      el('exceptionsButton').disabled = true;
+      setProgress(2, 'Laying out the clickable table of contents…');
+      try {
+        const { PDFDocument, StandardFonts, rgb } = PDFLib;
+        const doc = await PDFDocument.create();
+        const title = el('projectTitle').value.trim() || 'Project Specifications';
+        doc.setTitle(pdfText(title)); doc.setSubject('Compiled project specifications with clickable table of contents');
+        doc.setCreator('Spec Navigator'); doc.setProducer('Spec Navigator');
+        const regular = await doc.embedFont(StandardFonts.Helvetica);
+        const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+        const layout = paginateToc(compilationItems);
+        const tocPages = layout.pages.map(() => doc.addPage([612,792]));
+        const tocTargets = mapTocTargets(layout, tocPages);
+        const results = new Map();
+        const buildFailures = [];
+
+        for (let i = 0; i < compilationItems.length; i++) {
+          const match = compilationItems[i];
+          setProgress(8 + (i / compilationItems.length) * 72, `Adding ${displaySpec(match)} · ${i + 1} of ${compilationItems.length}`);
+          await nextFrame();
+          try {
+            const bytes = await match.pdf.getBytes();
+            const source = await PDFDocument.load(bytes, { updateMetadata: false, throwOnInvalidObject: false });
+            if (!source.getPageCount()) throw new Error('PDF has no pages');
+            const copied = await doc.copyPages(source, source.getPageIndices());
+            const startIndex = doc.getPageCount();
+            copied.forEach(page => doc.addPage(page));
+            const target = doc.getPage(startIndex);
+            results.set(match, { target, pages: copied });
+          } catch (error) {
+            buildFailures.push({ match, error: friendlyError(error) });
+          }
+        }
+
+        setProgress(83, 'Drawing links and finalizing the contents…');
+        drawToc(doc, tocPages, layout, results, regular, bold, title);
+        addBacklinks(doc, results, tocTargets, regular, bold);
+        setProgress(87, 'Losslessly compressing and removing duplicate resources…');
+        state.lastOptimization = await losslessOptimizeDocument(doc, progress => setProgress(87 + progress * 8, 'Losslessly compressing and removing duplicate resources…'));
+        setProgress(96, 'Serializing the optimized PDF…');
+        const saved = await doc.save({ useObjectStreams: true, addDefaultPage: false, objectsPerTick: 35 });
+        setProgress(98, 'Preparing your download…');
+        const filename = sanitizeFilename(el('outputName').value.trim() || 'Project_Specifications.pdf');
+        downloadBlob(new Blob([saved], {type:'application/pdf'}), filename);
+        setProgress(100, 'PDF complete');
+        hideProgress(1100);
+        const inputBytes = compilationItems.reduce((sum, item) => sum + (Number(item.pdf.size) || 0), 0);
+        const outputSize = formatBytes(saved.byteLength);
+        const inputSize = inputBytes ? formatBytes(inputBytes) : 'unknown input size';
+        const reclaimed = formatBytes(state.lastOptimization.bytesSaved);
+        if (buildFailures.length) {
+          el('packageStatus').textContent = `PDF created at ${outputSize} from ${inputSize}, with ${compilationItems.length - buildFailures.length} of ${compilationItems.length} eligible files. Lossless cleanup removed about ${reclaimed}; ${buildFailures.length} unreadable PDF${buildFailures.length === 1 ? '' : 's'} could not be compiled.`;
+          toast(`PDF downloaded. ${buildFailures.length} unreadable file${buildFailures.length === 1 ? ' was' : 's were'} flagged.`, 5200);
+        } else {
+          el('packageStatus').textContent = `Optimized PDF ready: ${outputSize} from ${inputSize}. Lossless cleanup removed about ${reclaimed} across ${state.lastOptimization.compressedStreams.toLocaleString()} compressed and ${state.lastOptimization.deduplicatedStreams.toLocaleString()} duplicate streams.`;
+          toast(`Optimized PDF downloaded with ${compilationItems.length} specs and exact TOC return links.`, 4800);
+        }
+      } catch (error) {
+        console.error(error);
+        toast(`PDF build stopped: ${friendlyError(error)}`, 6500);
+        el('packageStatus').textContent = 'The package remains loaded; you can try the build again.';
+      } finally {
+        state.busy = false;
+        el('buildButton').disabled = !getCompilationItems().length;
+        el('exceptionsButton').disabled = !(state.missing.length || state.extras.length || state.excludedFiles.length);
+      }
+    }
+
+    function paginateToc(matches) {
+      const tokens = [];
+      let lastDivision = null;
+      for (const match of matches) {
+        const key = `${match.division.number}|${match.division.label}`;
+        if (key !== lastDivision) { tokens.push({type:'division', division:match.division, height:28}); lastDivision = key; }
+        tokens.push({type:'spec', match, height:25});
+      }
+      const pages = []; let current = []; let y = 660;
+      for (const token of tokens) {
+        if (y - token.height < 55) { pages.push(current); current = []; y = 710; }
+        current.push({...token, y}); y -= token.height;
+      }
+      if (current.length || !pages.length) pages.push(current);
+      return { pages };
+    }
+
+    function mapTocTargets(layout, tocPages) {
+      const targets = new Map();
+      layout.pages.forEach((items, pageIndex) => {
+        for (const item of items) if (item.type === 'spec') targets.set(item.match, { page: tocPages[pageIndex], y: item.y });
+      });
+      return targets;
+    }
+
+    function addBacklinks(doc, results, tocTargets, regular, bold) {
+      const { rgb } = PDFLib;
+      for (const [item, result] of results) {
+        const target = tocTargets.get(item);
+        if (!target) continue;
+        for (const page of result.pages) {
+          const width = page.getWidth();
+          const height = page.getHeight();
+          const buttonWidth = 94;
+          const buttonHeight = 17;
+          const x = Math.max(8, width - buttonWidth - 10);
+          const y = Math.max(8, height - buttonHeight - 8);
+          page.drawRectangle({ x, y, width:buttonWidth, height:buttonHeight, color:rgb(1,1,1), opacity:.90, borderColor:rgb(.047,.42,.365), borderOpacity:.95, borderWidth:.65 });
+          page.drawText('BACK TO CONTENTS', { x:x + 9, y:y + 5.1, size:6.9, font:bold, color:rgb(.047,.32,.29), characterSpacing:.35 });
+          addDestinationLink(doc, page, [x,y,x+buttonWidth,y+buttonHeight], [target.page.ref,'XYZ',null,target.y + 32,null]);
+        }
+      }
+    }
+
+    async function losslessOptimizeDocument(doc, reportProgress = () => {}) {
+      const { PDFRawStream, PDFName, PDFRef, PDFDict, PDFArray, PDFStream } = PDFLib;
+      const filterKey = PDFName.of('Filter');
+      const decodeParmsKey = PDFName.of('DecodeParms');
+      const lengthKey = PDFName.of('Length');
+      let compressedStreams = 0;
+      let deduplicatedStreams = 0;
+      let bytesSaved = 0;
+
+      let objects = doc.context.enumerateIndirectObjects();
+      for (let index = 0; index < objects.length; index++) {
+        const [ref, object] = objects[index];
+        if (object instanceof PDFRawStream && !object.dict.has(filterKey)) {
+          const contents = object.getContents();
+          if (contents.length >= 128) {
+            try {
+              const compressed = pako.deflate(contents, { level: 9 });
+              if (compressed.length + 24 < contents.length) {
+                const dict = object.dict.clone(doc.context);
+                dict.delete(lengthKey);
+                dict.delete(decodeParmsKey);
+                dict.set(filterKey, PDFName.of('FlateDecode'));
+                doc.context.assign(ref, PDFRawStream.of(dict, compressed));
+                compressedStreams++;
+                bytesSaved += contents.length - compressed.length;
+              }
+            } catch (error) { console.warn('Skipped one lossless stream compression', error); }
+          }
+        }
+        if (index % 20 === 0) { reportProgress((index / Math.max(1, objects.length)) * .50); await nextFrame(); }
+      }
+
+      objects = doc.context.enumerateIndirectObjects();
+      const buckets = new Map();
+      const replacements = new Map();
+      const duplicates = [];
+      for (let index = 0; index < objects.length; index++) {
+        const [ref, object] = objects[index];
+        if (object instanceof PDFRawStream && object.getContentsSize() >= 64) {
+          const contents = object.getContents();
+          const dict = object.dict.clone(doc.context);
+          dict.delete(lengthKey);
+          const signature = `${contents.length}|${fastByteHash(contents)}|${dict.toString()}`;
+          const candidates = buckets.get(signature) || [];
+          const duplicateOf = candidates.find(candidate => bytesEqual(contents, candidate.object.getContents()));
+          if (duplicateOf) {
+            replacements.set(ref.tag, duplicateOf.ref);
+            duplicates.push(ref);
+            deduplicatedStreams++;
+            bytesSaved += contents.length;
+          } else {
+            candidates.push({ ref, object });
+            buckets.set(signature, candidates);
+          }
+        }
+        if (index % 20 === 0) { reportProgress(.50 + (index / Math.max(1, objects.length)) * .32); await nextFrame(); }
+      }
+
+      if (replacements.size) {
+        const visited = new Set();
+        const replaceRefs = object => {
+          if (!object || visited.has(object)) return;
+          visited.add(object);
+          if (object instanceof PDFStream) {
+            replaceRefs(object.dict);
+          } else if (object instanceof PDFDict) {
+            for (const [key, value] of object.entries()) {
+              if (value instanceof PDFRef && replacements.has(value.tag)) object.set(key, replacements.get(value.tag));
+              else replaceRefs(value);
+            }
+          } else if (object instanceof PDFArray) {
+            for (let i = 0; i < object.size(); i++) {
+              const value = object.get(i);
+              if (value instanceof PDFRef && replacements.has(value.tag)) object.set(i, replacements.get(value.tag));
+              else replaceRefs(value);
+            }
+          }
+        };
+        const allObjects = doc.context.enumerateIndirectObjects();
+        for (let index = 0; index < allObjects.length; index++) {
+          replaceRefs(allObjects[index][1]);
+          if (index % 40 === 0) { reportProgress(.82 + (index / Math.max(1, allObjects.length)) * .17); await nextFrame(); }
+        }
+        duplicates.forEach(ref => doc.context.delete(ref));
+      }
+      reportProgress(1);
+      return { compressedStreams, deduplicatedStreams, bytesSaved };
+    }
+
+    function fastByteHash(bytes) {
+      let a = 2166136261;
+      let b = 2246822519;
+      for (let i = 0; i < bytes.length; i++) {
+        a = Math.imul(a ^ bytes[i], 16777619);
+        b = Math.imul(b ^ bytes[i], 3266489917);
+      }
+      return `${(a>>>0).toString(36)}.${(b>>>0).toString(36)}`;
+    }
+
+    function bytesEqual(a, b) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+      return true;
+    }
+
+    function drawToc(doc, pages, layout, results, regular, bold, title) {
+      const { rgb } = PDFLib;
+      const C = { ink: rgb(.09,.13,.14), muted:rgb(.38,.44,.45), accent:rgb(.047,.42,.365), amber:rgb(.72,.39,.10), line:rgb(.84,.87,.85), soft:rgb(.93,.96,.94), red:rgb(.64,.20,.18) };
+      pages.forEach((page, pageIndex) => {
+        const items = layout.pages[pageIndex];
+        if (pageIndex === 0) {
+          page.drawText(pdfText(title), {x:48,y:735,size:23,font:bold,color:C.ink,maxWidth:510});
+          page.drawText('CLICKABLE TABLE OF CONTENTS', {x:48,y:708,size:8.5,font:bold,color:C.accent,characterSpacing:1.2});
+        } else {
+          page.drawText(pdfText(title), {x:48,y:752,size:12,font:bold,color:C.ink,maxWidth:460});
+          page.drawText(`CONTENTS · ${pageIndex + 1} OF ${pages.length}`, {x:440,y:752,size:7.5,font:bold,color:C.muted});
+        }
+        const headerY = pageIndex === 0 ? 678 : 730;
+        page.drawLine({start:{x:48,y:headerY},end:{x:564,y:headerY},thickness:.8,color:C.line});
+        drawColumnHeaders(page, headerY - 14, bold, C);
+        for (const item of items) {
+          const y = item.y;
+          if (item.type === 'division') {
+            page.drawRectangle({x:48,y:y-7,width:516,height:21,color:C.soft});
+            page.drawText(pdfText(item.division.label), {x:56,y:y,size:9.3,font:bold,color:C.accent,maxWidth:495});
+          } else {
+            const m = item.match; const result = results.get(m); const rowColor = !result ? C.red : m.source === 'folder' ? C.amber : C.ink;
+            page.drawText(fitText(regular, pdfText(displaySpec(m)), 9, 88), {x:52,y,size:9,font:bold,color:rowColor});
+            page.drawText(fitText(regular, pdfText(m.specification || '—'), 8.5, 222), {x:145,y,size:8.5,font:regular,color:rowColor});
+            page.drawText(fitText(regular, pdfText(m.discipline || '—'), 8.2, 65), {x:372,y,size:8.2,font:regular,color:rowColor});
+            const revisionDisplay = m.source === 'folder' ? fileRevisionLabel(m) : `${m.rev || '—'} / ${fileRevisionLabel(m)}`;
+            page.drawText(fitText(regular, pdfText(revisionDisplay), 8.2, 42), {x:442,y,size:8.2,font:regular,color:rowColor});
+            const dateOrStatus = !result ? 'UNREADABLE' : m.source === 'folder' ? 'FOLDER ONLY' : (m.date || '—');
+            page.drawText(fitText(regular, pdfText(dateOrStatus), 8.2, 73), {x:488,y,size:8.2,font:m.source === 'folder' || !result ? bold : regular,color:rowColor});
+            page.drawLine({start:{x:48,y:y-8},end:{x:564,y:y-8},thickness:.35,color:C.line});
+            if (result) addPageLink(doc, page, [48,y-8,564,y+14], result.target);
+          }
+        }
+        page.drawText('Generated locally with Spec Navigator', {x:48,y:29,size:7,font:regular,color:C.muted});
+        page.drawText(String(pageIndex + 1), {x:553,y:29,size:7,font:bold,color:C.muted});
+      });
+    }
+
+    function drawColumnHeaders(page, y, bold, C) {
+      [['SPEC NUMBER',52],['SPECIFICATION',145],['DISCIPLINE',372],['REV / FILE',442],['DATE / STATUS',488]].forEach(([label,x]) => page.drawText(label,{x,y,size:6.8,font:bold,color:C.muted,characterSpacing:.45}));
+    }
+
+    function addPageLink(doc, page, rect, targetPage) {
+      addDestinationLink(doc, page, rect, [targetPage.ref,'FitH',targetPage.getHeight()]);
+    }
+
+    function addDestinationLink(doc, page, rect, destination) {
+      try {
+        const annotation = doc.context.obj({ Type:'Annot', Subtype:'Link', Rect:rect, Border:[0,0,0], Dest:destination });
+        page.node.addAnnot(doc.context.register(annotation));
+      } catch (error) { console.warn('Could not add one TOC link', error); }
+    }
+
+    function fitText(font, text, size, maxWidth) {
+      let value = text || '—';
+      if (font.widthOfTextAtSize(value, size) <= maxWidth) return value;
+      while (value.length > 2 && font.widthOfTextAtSize(value + '…', size) > maxWidth) value = value.slice(0,-1);
+      return value + '…';
+    }
+
+    function pdfText(value) {
+      return String(value ?? '').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\u2013\u2014]/g,'-').replace(/\u2022/g,'-').replace(/[^\x20-\x7E\xA0-\xFF]/g,'?');
+    }
+
+    function formatBytes(value) {
+      const bytes = Math.max(0, Number(value) || 0);
+      if (bytes < 1024) return `${Math.round(bytes)} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function nextFrame() { return new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve,0))); }
+    function friendlyError(error) {
+      const message = String(error?.message || error || 'Unknown error');
+      if (/encrypt/i.test(message)) return 'password-protected or encrypted PDF';
+      if (/memory|allocation|Array buffer/i.test(message)) return 'browser ran out of memory';
+      return message.slice(0,180);
+    }
+
+    function failLoad(error, prefix) {
+      console.error(error);
+      el('packageStatus').textContent = `${prefix}: ${friendlyError(error)}`;
+      setProgress(100, 'Package could not be loaded'); hideProgress(1800);
+      toast(`${prefix}: ${friendlyError(error)}`, 6500);
+    }
+
+    function resetData() {
+      if (viewerDialog.open) closeViewerDialog(); else destroyViewerDocument();
+      state.entries=[]; state.indexEntry=null; state.rows=[]; state.matches=[]; state.missing=[]; state.extras=[]; state.divisions=new Map(); state.excludedFiles=[]; state.lastOptimization=null; state.packageName='';
+      viewer.items=[]; viewer.selectedIndex=-1; viewer.navRows=[]; viewer.navTotalHeight=0;
+      for (const selection of Object.values(viewer.searchScope)) selection.clear();
+      viewer.scopeMode='and';
+      viewer.scopeOptions={ divisions:[], sections:[], disciplines:[], sources:[] };
+      viewer.lastSearchScopeLabel=''; viewer.lastSearchSpecCount=0;
+      el('matchSearch').value=''; el('exceptionSearch').value=''; el('viewerSearch').value=''; el('viewerDocSearch').value='';
+      el('viewerSearchAll').checked=false; closeViewerScopePanel();
+      el('viewerScopeButton').textContent='Scope: All'; el('viewerScopeButton').classList.remove('active'); el('viewerScopeButton').disabled=false;
+      el('viewerScopeSummary').textContent='All included specifications are eligible.';
+      el('viewerScopeModeAnd').checked=true; el('viewerScopeModeOr').checked=false;
+      ['statIndex','statMatched','statMissing','statExtra','statSkipped'].forEach(id => el(id).textContent='0');
+      el('indexFileName').textContent='—'; el('divisionSummary').textContent='—';
+      el('divisionList').innerHTML='<div class="empty">Reading package…</div>';
+      el('exceptionsButton').disabled=true; el('exportManifestButton').disabled=true; el('buildButton').disabled=true; el('openViewerButton').disabled=true;
+    }
+
+    function resetApp() {
+      if (state.busy) { toast('Please wait for the current task to finish.'); return; }
+      resetData(); workspace.classList.remove('visible');
+      zipInput.value=''; folderInput.value='';
+      dropZone.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+
+    function sanitizeFilename(value) {
+      let name = String(value || 'Project_Specifications.pdf').replace(/[<>:"/\\|?*\x00-\x1F]/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').slice(0,115);
+      if (!/\.pdf$/i.test(name)) name += '.pdf';
+      return name;
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+
+    initializeUpdater();
+
+    if (location.hash === '#qa') {
+      window.__SPEC_NAVIGATOR_QA__ = {
+        parseSpecCode,
+        parseFilenameRevision,
+        hasDatOrApp,
+        getDivision,
+        parseWorkbook,
+        paginateToc,
+        hasHyphenBelowDivision,
+        losslessOptimizeDocument,
+        compareVersions,
+        normalizeUpdateManifest,
+        setUpdateInfoForTest(value) {
+          const info = normalizeUpdateManifest(value);
+          updater.info = compareVersions(info.version,APP_VERSION) > 0 ? info : null;
+          updater.status = updater.info ? 'available' : 'current';
+          updater.error = ''; updater.downloaded = false; updater.downloadError = '';
+          el('versionUpdateDot').hidden = !updater.info;
+          renderUpdateDialog();
+          return updater.info;
+        },
+        openUpdateDialogForTest(tab = 'update') { return openUpdateDialog(tab,false); },
+        updaterSnapshot() {
+          return { status:updater.status, info:updater.info ? {...updater.info} : null, downloading:updater.downloading, downloaded:updater.downloaded, downloadError:updater.downloadError, activeTab:updater.activeTab };
+        },
+        expandViewerItemsForTest(count = 500) {
+          const base = getCompilationItems();
+          if (!base.length) return;
+          viewer.items = Array.from({length:count}, (_, index) => {
+            const source = base[index % base.length];
+            return { ...source, specCode:String(index % 46).padStart(2,'0') + '_' + String(Math.floor(index / 46) % 100).padStart(2,'0') + '_' + String(index % 100).padStart(2,'0') + '_' + String((index * 7) % 100).padStart(2,'0'), specification:`Virtualized QA specification ${index + 1}` };
+          }).sort(sortMatches);
+          buildViewerNav();
+        },
+        viewerSnapshot() {
+          return {
+            items:viewer.items.length,
+            navRows:viewer.navRows.length,
+            navDomRows:el('viewerSpecSpacer').children.length,
+            pages:viewer.pageSlots.length,
+            rendered:[...viewer.rendered].sort((a,b) => a-b),
+            renderTasks:[...viewer.renderTasks.keys()].sort((a,b) => a-b),
+            canvases:el('viewerPages').querySelectorAll('canvas').length,
+            selectedIndex:viewer.selectedIndex,
+            currentPage:viewer.currentPage,
+            renderRoles:Object.fromEntries([...viewer.renderRoles.entries()].sort((a,b) => a[0]-b[0])),
+            textMatches:viewer.textMatches.map(match => ({...match})),
+            textMatchIndex:viewer.textMatchIndex,
+            searchTerms:viewer.searchTerms.map(term => ({...term})),
+            scopeFilterCount:viewerScopeFilterCount(),
+            scopedItems:getViewerScopedEntries().length,
+            scopeMode:viewer.scopeMode,
+            scopeLabel:viewerScopeDetailedLabel(),
+            lastSearchScopeLabel:viewer.lastSearchScopeLabel,
+            lastSearchSpecCount:viewer.lastSearchSpecCount,
+            zoom:viewer.zoom,
+            wheelZooming:viewer.wheelZooming,
+            pagesWidth:parseFloat(el('viewerPages').style.width) || 0,
+            commandZoomStep:VIEWER_ZOOM_COMMAND_STEP,
+            wheelZoomStep:VIEWER_ZOOM_WHEEL_STEP,
+            wheelZoomSettleMs:VIEWER_ZOOM_SETTLE_MS,
+            searchingAll:viewer.searchingAll,
+            focusedMaxCanvasPixels:VIEWER_FOCUSED_MAX_CANVAS_PIXELS,
+            bufferMaxCanvasPixels:VIEWER_BUFFER_MAX_CANVAS_PIXELS,
+            focusedPixelRatio:VIEWER_FOCUSED_PIXEL_RATIO,
+            bufferPixelRatio:VIEWER_BUFFER_PIXEL_RATIO
+          };
+        },
+        reconcileEntries(entries, rows, packageName = 'QA Package') {
+          state.entries = entries;
+          state.rows = rows;
+          state.packageName = packageName;
+          reconcile();
+          renderAll();
+          workspace.classList.add('visible');
+          return { matches: state.matches, missing: state.missing, extras: state.extras };
+        }
+      };
+    }
+  })();
+  </script>
+</body>
+</html>

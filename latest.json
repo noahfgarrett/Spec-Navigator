@@ -1,0 +1,13 @@
+{
+  "version": "1.0.2",
+  "publishedAt": "2026-08-12",
+  "filename": "Spec_Navigator_v1.0.2.html",
+  "downloadUrl": "https://raw.githubusercontent.com/noahfgarrett/Spec-Navigator/main/Spec_Navigator_v1.0.2.html",
+  "fileSize": 3132776,
+  "sha256": "ab261df24bb5d07c48f479fc0b1cf84976a8604548c70ff35b6da9fb296057cd",
+  "notes": [
+    "Ctrl or Cmd wheel zoom now crosses fit width without flashing or snapping the page",
+    "AND scope mode dynamically hides filter choices that cannot match the current selections",
+    "OR scope mode searches the union of any selected divisions, sections, disciplines, or sources"
+  ]
+}

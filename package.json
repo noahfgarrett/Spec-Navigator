@@ -1,0 +1,24 @@
+{
+  "name": "spec-navigator",
+  "version": "1.0.2",
+  "private": true,
+  "description": "Standalone local specification compiler and virtualized PDF viewer.",
+  "scripts": {
+    "build": "node build-standalone.js",
+    "test": "node build-standalone.js && node qa-test.js",
+    "prepare-release": "node build-standalone.js && node prepare-release.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "jszip": "3.10.1",
+    "pako": "2.1.0",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "3.11.174",
+    "xlsx": "0.18.5"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  }
+}
