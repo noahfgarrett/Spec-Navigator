@@ -1,6 +1,6 @@
 {
   "name": "spec-navigator",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Standalone local specification compiler and virtualized PDF viewer.",
   "scripts": {

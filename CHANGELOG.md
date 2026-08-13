@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.3 - 2026-08-13
+
+- Search Filters now combines all-spec search, AND or OR scope facets, and standalone-word matching
+- Search summaries export to Word, Excel, or PDF, and selectable PDF text supports non-destructive in-app highlights
+- DAT, APP, hyphenated building, and TBL files can be included on demand while preserving duplicate spec numbers
+- A visible document scroll rail, stronger sharp rendering, aligned controls, Full Page view, and dark mode polish the viewer
+- Folder handles, viewer position, filters, theme, and highlights persist locally when browser permissions allow
+
 ## 1.0.2 - 2026-08-12
 
 - Ctrl or Cmd wheel zoom now crosses fit width without flashing or snapping the page

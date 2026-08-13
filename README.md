@@ -15,8 +15,8 @@ No installation, account, web server, or adjacent application files are required
 - Read `Current Project Specifications Index.xlsx` and detect the header row containing Spec Number, Specification, Discipline, Rev, and Date.
 - Match `XX_XX_XX_XX` spec numbers, with an optional five-digit value in parentheses.
 - Include eligible PDFs that do not match the index as clearly labeled folder-only specs.
-- Exclude PDFs with a hyphen in the filename or any nested path below the DIVISION folder.
-- Exclude filenames containing DAT or APP, case-insensitively.
+- Exclude DAT data sheets, APP appendices, hyphenated building files, and TBL table files by default.
+- Allow any optional file category to be included from the landing page; selected optional files may retain duplicate spec numbers.
 - When multiple eligible files share a spec number, select the highest standalone `r#` revision.
 
 ## Viewer zoom
@@ -25,6 +25,14 @@ No installation, account, web server, or adjacent application files are required
 - Ctrl/Cmd plus the mouse wheel moves in 5% steps when the pointer is directly over a PDF page.
 - Mouse-wheel zoom keeps the document point beneath the cursor anchored in place.
 - Wheel gestures keep the existing page visible and defer the sharp rerender until the gesture settles, including when crossing fit width.
+- The focused page and nearby page buffers use elevated, zoom-aware render targets, and the always-visible in-app scroll rail remains available even when operating-system scrollbars are hidden.
+
+## Viewer tools
+
+- Use **Full Page** to hide or restore the virtualized specification list.
+- Enable **Highlight**, then drag across embedded PDF text to create a non-destructive in-app highlight. Click a saved highlight with the tool off to remove it.
+- Switch between the light interface and a dark gray theme with blue accents.
+- Search summary results can be exported as Word (`.docx`), Excel (`.xlsx`), or PDF (`.pdf`).
 
 ## Search scope
 
@@ -32,6 +40,12 @@ No installation, account, web server, or adjacent application files are required
 - Multiple choices within one category remain inclusive; for example, two checked disciplines match either discipline while still respecting selected divisions and sections.
 - OR mode keeps all filter choices visible and includes a spec when any selected division, section, discipline, or source matches.
 - The text query is applied within the resulting AND or OR scope.
+- **All Specs** now lives inside **Search Filters**.
+- Word matching can include text inside longer words or require standalone words and phrases, so `Rod` can exclude `pRODuce`.
+
+## Session continuity
+
+Theme, viewer location, zoom, search settings, optional-file choices, and in-app highlights are saved locally in the browser. When a folder was opened with Chrome or Edge's dedicated folder picker, Spec Navigator also stores its directory handle locally and reopens it automatically when permission remains granted. Browser security does not allow an arbitrary ZIP or fallback file selection to be silently reopened; use **Change folder or ZIP** when needed.
 
 ## Privacy and updates
 

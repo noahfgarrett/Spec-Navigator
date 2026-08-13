@@ -36,6 +36,7 @@ async function makePackage() {
     ['Demo/DIVISION 23 - HVAC/23_11_13_00 (99999) r3 Fuel Piping.pdf', await makePdf('Selected highest fuel piping revision')],
     ['Demo/DIVISION 23 - HVAC/23_11_13_00 DAT r99.pdf', await makePdf('DAT must never win')],
     ['Demo/DIVISION 23 - HVAC/23_11_13_00 app r100.pdf', await makePdf('APP must never win')],
+    ['Demo/DIVISION 23 - HVAC/23_11_13_00 TBL (54321).pdf', await makePdf('TBL optional table')],
     ['Demo/DIVISION 01 - General Requirements/01_23_45_67 - Package 12345.pdf', await makePdf('Hyphenated filename package')],
     ['Demo/DIVISION 23 - HVAC/Package-54321/23_11_13_00 (54321) Wrapped.pdf', await makePdf('Hyphenated subfolder package')],
     ['Demo/DIVISION 02 - Existing Conditions/02_02_02_02 Extra.pdf', repeatedResourcePdf],
@@ -53,6 +54,15 @@ async function waitFor(test, label, timeout = 15000) {
     if (Date.now() - started > timeout) throw new Error(`Timed out waiting for ${label}`);
     await new Promise(resolve => setTimeout(resolve, 25));
   }
+}
+
+async function blobBytes(window, blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new window.FileReader();
+    reader.onload = () => resolve(new Uint8Array(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(blob);
+  });
 }
 
 function makeDirectoryHandle(window, entries, rootName = 'Demo') {
@@ -112,21 +122,41 @@ function makeDirectoryHandle(window, entries, rootName = 'Demo') {
     },
   });
   const pkg = await makePackage();
+  fs.mkdirSync('tmp', { recursive: true });
+  fs.writeFileSync('tmp/spec-navigator-qa.zip',pkg.zip);
   Object.defineProperty(dom.window, 'isSecureContext', { configurable: true, value: true });
   dom.window.showDirectoryPicker = async () => makeDirectoryHandle(dom.window, pkg.entries);
   dom.window.document.getElementById('folderButton').click();
   await waitFor(() => dom.window.document.getElementById('progressLabel').textContent === 'Package reconciliation complete', 'dedicated folder picker reconciliation');
   const qa = dom.window.__SPEC_NAVIGATOR_QA__;
   if (qa.parseFilenameRevision('Spec R12 final.pdf') !== 12 || qa.parseFilenameRevision('Spec without revision.pdf') !== null) throw new Error('Filename r# parsing failed');
-  if (!qa.hasDatOrApp('SPEC_DAT_R99.PDF') || !qa.hasDatOrApp('spec_app_r100.pdf')) throw new Error('DAT/APP filename filtering failed');
+  if (!qa.hasDatOrApp('SPEC_DAT_R99.PDF') || !qa.hasDatOrApp('spec_app_r100.pdf') || qa.hasDatOrApp('spec update.pdf') || !qa.hasOptionalMarker('23_11 TBL table.pdf','TBL')) throw new Error('Optional filename marker detection failed');
   const values = ['statIndex', 'statMatched', 'statExtra', 'statMissing', 'statSkipped'].map(id => dom.window.document.getElementById(id).textContent);
-  if (values.join(',') !== '4,2,3,2,5') throw new Error(`Unexpected reconciliation stats: ${values.join(',')}`);
+  if (values.join(',') !== '4,2,3,2,6') throw new Error(`Unexpected reconciliation stats: ${values.join(',')}`);
   const statusText = dom.window.document.getElementById('packageStatus').textContent;
-  for (const expected of ['2 hyphen', '2 DAT/APP', '1 older/duplicate revision']) if (!statusText.includes(expected)) throw new Error(`Exclusion summary missing: ${expected}`);
+  for (const expected of ['2 Hyphenated building file', '1 Data sheet (DAT)', '1 Appendix (APP)', '1 Table (TBL)', '1 Superseded revision']) if (!statusText.includes(expected)) throw new Error(`Exclusion summary missing: ${expected}`);
   const matchedText = dom.window.document.getElementById('divisionList').textContent;
   if (!matchedText.includes('01_23_45_67') || !matchedText.includes('23_11_13_00')) throw new Error('Matched table did not render expected specs');
   if (!matchedText.includes('Folder only · included') || !matchedText.includes('Index matched')) throw new Error('Compilation manifest did not clearly label both included groups');
-  if (!matchedText.includes('r3 Fuel Piping') || matchedText.includes('r1 Fuel Piping') || matchedText.includes('DAT r99') || matchedText.includes('app r100')) throw new Error('Highest-revision selection or DAT/APP exclusion failed in the compilation manifest');
+  if (!matchedText.includes('r3 Fuel Piping') || matchedText.includes('r1 Fuel Piping') || matchedText.includes('DAT r99') || matchedText.includes('app r100') || matchedText.includes('TBL')) throw new Error('Highest-revision selection or optional-file exclusion failed in the compilation manifest');
+
+  for (const id of ['includeRuleDat','includeRuleApp','includeRuleHyphen','includeRuleTbl']) {
+    const input = dom.window.document.getElementById(id);
+    input.checked = true;
+    input.dispatchEvent(new dom.window.Event('change',{bubbles:true}));
+  }
+  const optionalValues = ['statIndex','statMatched','statExtra','statMissing','statSkipped'].map(id => dom.window.document.getElementById(id).textContent);
+  if (optionalValues.join(',') !== '4,2,8,2,1') throw new Error(`Selected optional files were not included with duplicates preserved: ${optionalValues.join(',')}`);
+  const optionalText = dom.window.document.getElementById('divisionList').textContent;
+  for (const expected of ['DAT r99','app r100','TBL (54321)','Package-54321','Optional']) if (!optionalText.includes(expected)) throw new Error(`Selected optional manifest is missing: ${expected}`);
+  if ((optionalText.match(/23_11_13_00/g) || []).length < 5) throw new Error('Selected optional files did not preserve duplicate spec numbers');
+  for (const id of ['includeRuleDat','includeRuleApp','includeRuleHyphen','includeRuleTbl']) {
+    const input = dom.window.document.getElementById(id);
+    input.checked = false;
+    input.dispatchEvent(new dom.window.Event('change',{bubbles:true}));
+  }
+  const restoredValues = ['statIndex','statMatched','statExtra','statMissing','statSkipped'].map(id => dom.window.document.getElementById(id).textContent);
+  if (restoredValues.join(',') !== '4,2,3,2,6') throw new Error(`Default optional exclusions were not restored: ${restoredValues.join(',')}`);
 
   dom.window.document.getElementById('buildButton').click();
   await waitFor(() => captured.length === 1, 'PDF download', 30000);
@@ -164,7 +194,7 @@ function makeDirectoryHandle(window, entries, rootName = 'Demo') {
     reader.onerror = () => reject(reader.error);
     reader.readAsText(captured[1]);
   });
-  for (const status of ['Index matched','Folder only','Index not found','Hyphenated package','DAT/APP variant','Superseded revision']) {
+  for (const status of ['Index matched','Folder only','Index not found','Hyphenated building file','Data sheet (DAT)','Appendix (APP)','Table (TBL)','Superseded revision']) {
     if (!auditCsv.includes(status)) throw new Error(`Audit CSV is missing status: ${status}`);
   }
   if (/0 duplicate streams/.test(dom.window.document.getElementById('packageStatus').textContent)) throw new Error('Lossless duplicate resource removal did not activate');
@@ -204,7 +234,7 @@ function makeDirectoryHandle(window, entries, rootName = 'Demo') {
       return {
         getViewport({ scale }) { return { width: 612 * scale, height: 792 * scale, transform:[scale,0,0,-scale,0,792*scale] }; },
         render() { return { promise: Promise.resolve(), cancel() {} }; },
-        getTextContent() { return Promise.resolve({ items: [{ str: pageNumber === 3 ? 'Needle is first and needle is second. Banana sits nearby.' : pageNumber === 8 ? 'Needle specification text includes banana.' : `page ${pageNumber} ordinary text`, width:310, height:12, transform:[12,0,0,12,72,700] }] }); },
+        getTextContent() { return Promise.resolve({ items: [{ str: pageNumber === 3 ? 'Needle is first and needle is second. Banana sits nearby. Rod and pRODuce rod.' : pageNumber === 8 ? 'Needle specification text includes banana.' : `page ${pageNumber} ordinary text`, width:420, height:12, transform:[12,0,0,12,72,700] }] }); },
       };
     },
   };
@@ -225,8 +255,20 @@ function makeDirectoryHandle(window, entries, rootName = 'Demo') {
   await waitFor(() => qa.viewerSnapshot().rendered.length === 3, 'initial three-page render window');
   let viewerSnapshot = qa.viewerSnapshot();
   if (viewerSnapshot.canvases !== 3 || viewerSnapshot.rendered.join(',') !== '0,1,2') throw new Error(`Unexpected initial viewer render window: ${JSON.stringify(viewerSnapshot)}`);
-  if (viewerSnapshot.focusedMaxCanvasPixels !== 32000000 || viewerSnapshot.bufferMaxCanvasPixels !== 12000000 || viewerSnapshot.focusedPixelRatio !== 3 || viewerSnapshot.bufferPixelRatio !== 2) throw new Error(`Viewer sharp-render defaults are incorrect: ${JSON.stringify(viewerSnapshot)}`);
+  if (viewerSnapshot.focusedMaxCanvasPixels !== 48000000 || viewerSnapshot.bufferMaxCanvasPixels !== 20000000 || viewerSnapshot.focusedPixelRatio !== 4 || viewerSnapshot.bufferPixelRatio !== 2.5) throw new Error(`Viewer sharp-render defaults are incorrect: ${JSON.stringify(viewerSnapshot)}`);
   if (viewerSnapshot.renderRoles['0'] !== 'focused' || viewerSnapshot.renderRoles['1'] !== 'buffer' || viewerSnapshot.renderRoles['2'] !== 'buffer') throw new Error(`Viewer did not prioritize the focused page: ${JSON.stringify(viewerSnapshot)}`);
+  if (viewerSnapshot.textLayers !== 3) throw new Error(`Rendered pages do not have selectable embedded-text layers: ${JSON.stringify(viewerSnapshot)}`);
+  if (!dom.window.document.getElementById('viewerSearchAll').closest('#viewerScopePanel')) throw new Error('All Specs was not moved into Search Filters');
+  if (qa.findOccurrencesForTest('Rod and pRODuce rod.','rod','anywhere').length !== 3 || qa.findOccurrencesForTest('Rod and pRODuce rod.','rod','standalone').length !== 2) throw new Error('Standalone word matching did not exclude terms embedded in longer words');
+  if (dom.window.document.getElementById('viewerNavToggle').textContent !== 'Full Page') throw new Error('Contents control was not renamed Full Page');
+  if (!dom.window.document.getElementById('viewerScrollRail') || dom.window.document.getElementById('viewerScrollRail').getAttribute('role') !== 'scrollbar') throw new Error('Always-visible document scroll rail is missing');
+  const topToolHeights = [...dom.window.document.querySelectorAll('.viewer-topbar .viewer-tool')].map(button => dom.window.getComputedStyle(button).height);
+  if (new Set(topToolHeights).size !== 1 || !['36px','var(--control-height)'].includes(topToolHeights[0])) throw new Error(`Viewer toolbar button heights are inconsistent: ${topToolHeights.join(',')}`);
+  dom.window.document.getElementById('viewerThemeToggle').click();
+  if (dom.window.document.documentElement.dataset.theme !== 'dark') throw new Error('Dark mode did not activate');
+  dom.window.document.getElementById('viewerThemeToggle').click();
+  qa.addViewerHighlightForTest(0,[{x:.1,y:.1,width:.2,height:.025}],'QA selected text');
+  if (dom.window.document.querySelectorAll('.viewer-user-highlight').length !== 1 || qa.viewerSnapshot().userHighlights !== 1) throw new Error('In-app PDF highlight did not render or persist in session state');
   const documentSearch = dom.window.document.getElementById('viewerDocSearch');
   documentSearch.value = 'needle; banana';
   dom.window.document.getElementById('viewerFind').click();
@@ -242,10 +284,26 @@ function makeDirectoryHandle(window, entries, rootName = 'Demo') {
   if (!dom.window.document.getElementById('viewerSearchSummaryBody').textContent.includes('Needle is first and needle is second.')) throw new Error('Search summary did not retain sentence context');
   const repeatedNeedleMark = dom.window.document.querySelectorAll('.search-result-row')[1].querySelector('mark');
   if (!repeatedNeedleMark || !repeatedNeedleMark.previousSibling?.textContent.includes('Needle is first and ')) throw new Error('Search summary did not emphasize the specifically numbered repeated occurrence');
+  const summaryExportStart = captured.length;
+  dom.window.document.getElementById('viewerSearchSummaryExport').click();
+  if (dom.window.document.getElementById('viewerSearchSummaryExportMenu').hidden) throw new Error('Export as menu did not open');
+  const docxDocument = qa.viewerSummaryDocxXmlForTest();
+  if (!docxDocument.includes('Spec Navigator Search Summary') || !docxDocument.includes('Needle is first')) throw new Error('DOCX summary export is missing expected content');
+  await qa.exportSummaryForTest('xlsx');
+  await waitFor(() => captured.length === summaryExportStart + 1, 'XLSX summary export');
+  const xlsx = XLSX.read(await blobBytes(dom.window,captured[summaryExportStart]),{type:'array'});
+  const xlsxRows = XLSX.utils.sheet_to_json(xlsx.Sheets[xlsx.SheetNames[0]]);
+  if (xlsxRows.length !== 5 || xlsxRows[0]['Matched Term'].toLowerCase() !== 'needle') throw new Error('XLSX summary export is missing structured occurrence rows');
+  await qa.exportSummaryForTest('pdf');
+  await waitFor(() => captured.length === summaryExportStart + 2, 'PDF summary export');
+  const summaryPdf = await PDFDocument.load(await blobBytes(dom.window,captured[summaryExportStart + 1]));
+  if (summaryPdf.getPageCount() < 1) throw new Error('PDF summary export has no pages');
+  if (!downloadNames.slice(-2).every((name,index) => name.endsWith(['.xlsx','.pdf'][index]))) throw new Error(`Summary export filenames are incorrect: ${downloadNames.slice(-2).join(',')}`);
   dom.window.document.getElementById('viewerSearchSummaryClose').click();
   if (dom.window.getComputedStyle(dom.window.document.getElementById('viewerViewport')).overflowY !== 'scroll') throw new Error('Viewer document scrollbar is not persistent');
   dom.window.document.getElementById('viewerNavToggle').click();
   if (!dom.window.document.getElementById('viewerDialog').classList.contains('sidebar-collapsed')) throw new Error('Desktop contents toggle did not collapse the sidebar');
+  if (dom.window.document.getElementById('viewerNavToggle').textContent !== 'Show Contents') throw new Error('Full Page control did not offer to restore contents after collapsing');
   dom.window.document.getElementById('viewerNavToggle').click();
   dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', {key:'+',ctrlKey:true,bubbles:true}));
   if (qa.viewerSnapshot().zoom !== 1.25) throw new Error(`Keyboard zoom did not use a 25% increment: ${qa.viewerSnapshot().zoom}`);
@@ -351,9 +409,8 @@ function makeDirectoryHandle(window, entries, rootName = 'Demo') {
 
   if (errors.length) throw errors[0];
   console.log('Dedicated folder selection: PASS');
-  console.log('Hyphenated package exclusion: PASS (filename and nested-folder cases)');
-  console.log('DAT/APP exclusion: PASS (case-insensitive and applied before revision selection)');
-  console.log('Highest r# selection: PASS (r3 selected over r1; r99/r100 variants excluded)');
+  console.log('Optional PDF rules: PASS (DAT, APP, hyphen, and TBL default exclusions; opt-in duplicates preserved)');
+  console.log('Highest r# selection: PASS (standard r3 selected over r1 without suppressing selected optional duplicates)');
   console.log('Synthetic package reconciliation: PASS (4 index rows, 2 matches, 2 index exceptions, 3 folder-only PDFs)');
   console.log('Full audit CSV: PASS (matched, folder-only, missing, and all exclusion reasons)');
   console.log('Merged searchable PDF: PASS (1 TOC + all 6 eligible source pages)');
@@ -361,11 +418,11 @@ function makeDirectoryHandle(window, entries, rootName = 'Demo') {
   console.log('Lossless stream deduplication: PASS');
   console.log('In-app Spec Viewer: PASS (virtualized 500-spec contents, opt-in all-spec sequential search, bounded PDF loading, five-page canvas window, distant canvas eviction)');
   console.log('Viewer-first workflow: PASS (review package returns to the reconciliation dashboard)');
-  console.log('Adaptive sharp rendering: PASS (focused page forced to 3x / 32 MP, buffers 2x / 12 MP, flash-free promotion)');
-  console.log('Viewer QoL: PASS (exact text highlight, persistent scrollbar, keyboard-friendly controls, collapsible contents)');
-  console.log('Occurrence search UX: PASS (live occurrence counts, semicolon terms, active green match, grouped sentence summary)');
+  console.log('Adaptive sharp rendering: PASS (focused page forced to 4x / 48 MP, buffers 2.5x / 20 MP, zoom-aware render window)');
+  console.log('Viewer QoL: PASS (selectable text layers, persistent in-app highlights, visible scroll rail, uniform controls, Full Page view, dark mode)');
+  console.log('Occurrence search UX: PASS (live counts, within/standalone word modes, grouped context, DOCX model plus XLSX/PDF exports)');
   console.log('Viewer zoom controls: PASS (25% commands, anchored 5% wheel steps, flash-free fit-width crossing and settled rerender)');
-  console.log('Scoped text search: PASS (cascading AND facets, OR unions, division, XX_XX section, discipline, source, summary disclosure)');
+  console.log('Search Filters: PASS (All Specs consolidation, cascading AND facets, OR unions, division, XX_XX section, discipline, source)');
   console.log('Standalone updater: PASS (semver, trusted manifest, version badge, update prompt, changelog, full HTML download)');
   dom.window.close();
 })().catch(error => {
