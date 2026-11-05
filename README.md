@@ -1,6 +1,6 @@
 # Spec Navigator
 
-Spec Navigator is a standalone, local-first HTML application for reconciling a project specification index against division folders and browsing the resulting PDF set without creating one enormous combined document.
+Spec Navigator is a single-file HTML app for reconciling a project specification index against division folders and browsing the resulting PDF set without creating one enormous combined document.
 
 ## Download and run
 
@@ -25,7 +25,8 @@ No installation, account, web server, or adjacent application files are required
 - Ctrl/Cmd plus the mouse wheel moves in 5% steps when the pointer is directly over a PDF page.
 - Mouse-wheel zoom keeps the document point beneath the cursor anchored in place.
 - Wheel gestures keep the existing page visible and defer the sharp rerender until the gesture settles, including when crossing fit width.
-- The focused page and nearby page buffers use elevated, zoom-aware render targets, and the always-visible in-app scroll rail remains available even when operating-system scrollbars are hidden.
+- Only the focused page and two pages on each side are rendered, at a resolution that follows the zoom level.
+- The in-app scroll rail stays visible even when operating-system scrollbars are hidden.
 
 ## Viewer tools
 
@@ -40,7 +41,7 @@ No installation, account, web server, or adjacent application files are required
 - Multiple choices within one category remain inclusive; for example, two checked disciplines match either discipline while still respecting selected divisions and sections.
 - OR mode keeps all filter choices visible and includes a spec when any selected division, section, discipline, or source matches.
 - The text query is applied within the resulting AND or OR scope.
-- **All Specs** now lives inside **Search Filters**.
+- **All Specs** is under **Search Filters**.
 - Word matching can include text inside longer words or require standalone words and phrases, so `Rod` can exclude `pRODuce`.
 
 ## Session continuity
